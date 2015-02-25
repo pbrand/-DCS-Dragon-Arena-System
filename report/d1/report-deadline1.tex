@@ -25,7 +25,7 @@
 \newpage
 
 \section{Introduction}
-WantGame BV wants to develop a new game engine. Because the computational complexity of these engines is high, the CTO of WantGame BV believes distributed systems offer an excellent performance - cost trade - off when supporting many concurrent users. This document discussed the analyses of the requested system.
+WantGame BV wants to develop a new game engine. Because the computational complexity of these engines is high, the CTO of WantGame BV believes distributed systems offer an excellent performance - cost trade-off when supporting many concurrent users. This document discusses the analyses of the requested system.
 
 \section{System Analysis}
 \subsection{Requirements}
@@ -43,7 +43,7 @@ WantGame BV wants to develop a new game engine. Because the computational comple
 	\item The game must world consists of a batlefield of 25x25 squares.
 	\item Each participant occupies one single  square of the game world.
 	\item Each square of the game world can host at most one particpant.
-	\item There must be a xxx (e.g. 500) ms delay between two consecutive actions of the same battle participant.
+	\item There must be a certain (200 ms) delay between two consecutive actions of the same battle participant.
 	\item Each battle participant maintains its initial and remaining number of health points.
 	\item Initially a player has between 10 and 20 health points and between 1 and 10 attack points.
 	\item Initially a dragon has between 50 an 100 health points and between 5 and 20 attack points.
@@ -59,28 +59,27 @@ WantGame BV wants to develop a new game engine. Because the computational comple
 \subsection{Content Replication and Placement}
 For replica management we have chosen to go with \emph{server-initiated replicas}. Permanent replicas and client-initiated replicas are not going to be applied in this design. 
 
+In contrast to permanent replicas, server-initiated replicas are copies of a data store that exist to enhance performance and which are created at the initiative of the (owner of the) data store. %%link reference. 
+
+If we look at server-initiated replicas, it has proven to be sufficient as long as one can guarantee that each data item is hosted by at least one server. Since our requirement is to host the grid and system events on at least two server nodes the server-initiated replicas seem to be a better choice in contrast to the other models. 
+
 Permanent replicas are not suitable for the DAS game design, because these mirrors need to be consistent with the main server. When a mirror is used it has to be updated for changes, these can be done periodically which causes the mirror to be outdated for a period of time, or for every update which is expensive since the whole mirror needs to be rewritten for a small change.  
 
-Client-initiated replicas, cache for clients is not needed, because many updates would mean many cache updates which makes the cache obsolete. 
-
-In contrast to permanent replicas, server-initiated replicas are copies of a data store that exist to enhance performance and which are created at the initiative of the (owner of the) data store %%link reference. 
-
-If we look at server-initiated replicas, it has proven to be sufficient as long as one can guarantee that each data item is hosten by at least one server. Since our requirement is to host the grid and system events on at least two server nodes the server-initiated replicas seem to be a good choice over the other models. 
-
+As for client-initiated replicas, cache for clients is not needed, because many updates would mean many cache updates which makes the cache obsolete. 
 
 \subsection{Content Distribution}
-For content distribution we have chosen to go with \emph{propagating the update operation to other copies}. When using this approach, only the update operations which should be used are propagated. According to %%refrence
-the main benefit is that there is minimal bandwidth usage. The first in option in the book is not a good choice, because it only notifies the other server(s) that there is a change, but the change itself is not propagated. The second method is useful if the read-write ration is relatively high, in our case this is low, which means that this is not such a good option.
+For content distribution we have chosen to go with \emph{propagating the update operation to other copies}. When using this approach, only the update operations which should be used are propagated. According to Tanenbaum et al. %%refrence
+the main benefit is minimal bandwidth usage compared to the other alternatives. The first option in the book is not a good choice, because it only notifies the other server(s) that there is a change, but the change itself is not propagated. The second method is useful if the read-write ration is relatively high, in our case this is low, which means that this is not such a good option.
 
 We have chosen push based protocols, because changes are pushed immediately to the client. Pull based protocols can cause the server to receive a lot of unnecessary pull requests which may cause overhead at the server.
 
-Related to pushing the updates, we have chosen to go with multicasting, because it can efficiently combined with a push-based approach to propagating updates. When the two are carefully integrated, a server that decides to push it's updates to a number of other servers simply uses a single multicast group to send its updates. %%ref book
+Related to pushing the updates, we have chosen to go with multicasting, because it can efficiently be combined with a push-based approach to propagating updates. When the two are carefully integrated, a server that decides to push its updates to a number of other servers, simply uses a single multicast group to send its updates. %%ref book
 
 
 \subsection{Consistency}
-We have chosen a data-centric consistency model with \emph{causal consistency}.  All in-game actions of the users will be sent to the server, therefore it is more efficient to compute the causal ordering of the game events on the server, which makes the choice of a data-centric model logical.  Causal consistency is the only approach which takes time in consideration when ordering events which are causally related. This is very important for us, because actions which are causally related should be observed in the same order by all clients. 
+We have chosen a data-centric consistency model with \emph{causal consistency}.  All in-game actions of the users will be sent to the server, therefore it is more efficient to compute the causal ordering of the game events on the server, which makes the choice of a data-centric model logical.  Causal consistency is the only approach which takes time in consideration when ordering events which are causally related. This is very important for the game, because actions which are causally related should be observed in the same order by all clients. 
 
-Sequential would give problems at determining the order of the events, because time does not play a role here. However it actually does in our system. Continuous consistency doesn't order the events at all. Causal order not guaranteed.
+Sequential consistency would give problems at determining the order of the events, because time does not play a role here. However it actually does in our system. Continuous consistency doesn't order the events at all. Causal order not guaranteed.
 
 \iffalse
 \begin{itemize}
