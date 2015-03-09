@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage{a4wide}
+
+
+
+%% if your are not using LaTeX2e use instead
+%% \documentstyle[bnaic]{article}
+
+%% begin document with title, author and affiliations
+
+\title{Report deadline1
+}
+\author{Patrick Brand (p.brand@student.tudelft.nl) \and
+    Raies Saboerali (r.a.a.saboerali@student.tudelft.nl)}
+\date{}
+
+%support cast needs to be filled in here.
+
+\pagestyle{empty}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\newpage
+
+\section{Introduction}
+WantGame BV wants to develop a new game engine. Because the computational complexity of these engines is high, the CTO of WantGame BV believes distributed systems offer an excellent performance - cost trade-off when supporting many concurrent users. This document discusses the analyses of the requested system.
+
+\section{System Analysis}
+\subsection{Requirements}
+\subsubsection{System Requirements}
+\begin{enumerate}
+	\item The system must be able cope with 100 players, 20 dragons when using 5 server nodes.
+	\item The system must log all game and system events.
+	\item The log of all game and system events must be available on at least two server nodes of the system.
+	\item The system must log all causal actions in the order in which they actually occur.
+	\item The system must be able to connect and disconnect users based on data from a real workload trace taken from the Game Trace Archive.
+\end{enumerate}
+
+\subsubsection{Game Requirements}
+\begin{enumerate}
+	\item The game must world consists of a battlefield of 25x25 squares.
+	\item Each participant occupies one single  square of the game world.
+	\item Each square of the game world can host at most one participant.
+	\item There must be a certain (200 ms) delay between two consecutive actions of the same battle participant.
+	\item Each battle participant maintains its initial and remaining number of health points.
+	\item Initially a player has between 10 and 20 health points and between 1 and 10 attack points.
+	\item Initially a dragon has between 50 an 100 health points and between 5 and 20 attack points.
+	\item A player can either move one step horizontally or vertically during a single action.
+	\item A player can hit a dragon either from a distance of at most 2 horizontal or 2 vertical squares.
+	\item A dragon can hit a player either from a distance of at most 2 horizontal or 2 vertical squares.
+	\item A player is not able to hit another player.
+	\item A player can heal another player by adding the receivers health points by an amount equal to the healer's attack points, up to the receiver's maximum initial health points. 
+	\item A player can heal another player from a distance of at most 5 horizontal or 5 vertical squares.
+\end{enumerate}
+
+\section{Design choices}
+\subsection{Content Replication and Placement}
+For replica management we have chosen to go with \emph{server-initiated replicas}. Permanent replicas and client-initiated replicas are not going to be applied in this design. 
+
+In contrast to permanent replicas, server-initiated replicas are copies of a data store that exist to enhance performance and which are created at the initiative of the (owner of the) data store. %%link reference. 
+
+If we look at server-initiated replicas, it has proven to be sufficient as long as one can guarantee that each data item is hosted by at least one server. Since our requirement is to host the grid and system events on at least two server nodes the server-initiated replicas seem to be a better choice in contrast to the other models. 
+
+Permanent replicas are not suitable for the DAS game design, because these mirrors need to be consistent with the main server. When a mirror is used it has to be updated for changes, these can be done periodically which causes the mirror to be outdated for a period of time, or for every update which is expensive since the whole mirror needs to be rewritten for a small change.  
+
+As for client-initiated replicas, cache for clients is not needed, because many updates would mean many cache updates which makes the cache obsolete. 
+
+\subsection{Content Distribution}
+For content distribution we have chosen to go with \emph{propagating the update operation to other copies}. When using this approach, only the update operations which should be used are propagated. According to Tanenbaum et al. %%refrence
+the main benefit is minimal bandwidth usage compared to the other alternatives. The first option in the book is not a good choice, because it only notifies the other server(s) that there is a change, but the change itself is not propagated. The second method is useful if the read-write ration is relatively high, in our case this is low, which means that this is not such a good option.
+
+We have chosen push based protocols, because changes are pushed immediately to the client. Pull based protocols can cause the server to receive a lot of unnecessary pull requests which may cause overhead at the server.
+
+Related to pushing the updates, we have chosen to go with multicasting, because it can efficiently be combined with a push-based approach to propagating updates. When the two are carefully integrated, a server that decides to push its updates to a number of other servers, simply uses a single multicast group to send its updates. %%ref book
+
+
+\subsection{Consistency}
+We have chosen a data-centric consistency model with \emph{causal consistency}.  All in-game actions of the users will be sent to the server, therefore it is more efficient to compute the causal ordering of the game events on the server, which makes the choice of a data-centric model logical.  Causal consistency is the only approach which takes time in consideration when ordering events which are causally related. This is very important for the game, because actions which are causally related should be observed in the same order by all clients. 
+
+Sequential consistency would give problems at determining the order of the events, because time does not play a role here. However it actually does in our system. Continuous consistency doesn't order the events at all. Causal order not guaranteed.
+
+\iffalse
+\begin{itemize}
+	\item The game will be server centric and not peer-to-peer.
+	\item All in-game actions of the users will be sent to the server, therefore it is more efficient to compute the causal ordering of the game events on the server. 
+	\item In this way the server is able to sent the ordered events to all clients. However in a peer-to-peer system, all the actions would have to be sent to all the different clients and each client would have had to compute the correct ordering of the events. 
+	\item By letting the server process the incoming data of all the different clients, we take away some workload from the clients.
+	\item This might even lead to inconsistency between clients as they don't know each others result. As these results might differ per client the requirement of having at least 2 redundant copies of the game log might be impossible as it is not possible to verify which client has the righteous data.
+\end{itemize} 
+
+causal consistency:
+\begin{itemize}
+	\item a logical choice when taking the causal actions, described by the requirements, into consideration.
+	\item Sequential would give problems at determining the order of the events. Time does not play a role here. However it actually does in our system
+	\item Continuous consistency doesn't order the events at all. Causal order not guaranteed.
+\end{itemize}
+\newpage
+\fi
+
+
+\newpage
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{mybibfile}
+
+\end{document}
+
+
+
+
+
+
+
+
