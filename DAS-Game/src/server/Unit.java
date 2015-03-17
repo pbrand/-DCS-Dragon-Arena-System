@@ -6,6 +6,7 @@ import java.util.Map;
 
 import client.Message;
 import core.IMessage;
+import core.IUnit;
 import server.BattleField;
 import server.GameState;
 /*
@@ -27,7 +28,7 @@ import distributed.systems.example.LocalSocket;
  *  
  * @author Pieter Anemaet, Boaz Pat-El
  */
-public abstract class Unit implements Serializable, IMessage {
+public abstract class Unit implements Serializable, IMessage, IUnit {
 	private static final long serialVersionUID = -4550572524008491160L;
 
 	// Position of the unit
