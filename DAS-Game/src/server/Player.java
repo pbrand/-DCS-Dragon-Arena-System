@@ -2,8 +2,9 @@ package server;
 
 import java.io.Serializable;
 
-import distributed.systems.das.BattleField;
-import distributed.systems.das.GameState;
+import server.BattleField;
+import server.GameState;
+import server.Unit;
 
 /**
  * A Player is, as the name implies, a playing 
@@ -138,7 +139,7 @@ public class Player extends Unit implements Runnable, Serializable {
 				e.printStackTrace();
 			}
 		}
-		clientSocket.unRegister();
+		//clientSocket.unRegister();
 	}
 
 }

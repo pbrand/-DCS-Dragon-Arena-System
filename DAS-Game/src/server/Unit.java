@@ -4,9 +4,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import distributed.systems.das.BattleField;
-import distributed.systems.das.GameState;
-import distributed.systems.das.MessageRequest;
+import client.Message;
+import core.IMessage;
+import server.BattleField;
+import server.GameState;
+/*
+import server.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
@@ -14,6 +17,7 @@ import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.example.LocalSocket;
+*/
 
 /**
  * Base class for all players whom can 
@@ -23,7 +27,7 @@ import distributed.systems.example.LocalSocket;
  *  
  * @author Pieter Anemaet, Boaz Pat-El
  */
-public abstract class Unit implements Serializable, IMessageReceivedHandler {
+public abstract class Unit implements Serializable, IMessage {
 	private static final long serialVersionUID = -4550572524008491160L;
 
 	// Position of the unit
@@ -57,7 +61,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	protected Thread runnerThread;
 
 	public enum Direction {
-		up, right, down, left
+		up, right, down, left;
 	};
 	
 	public enum UnitType {

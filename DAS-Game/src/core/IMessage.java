@@ -1,5 +1,7 @@
 package core;
 
-public interface IMessage {
+import java.io.Serializable;
+
+public interface IMessage extends Serializable {
 
 }

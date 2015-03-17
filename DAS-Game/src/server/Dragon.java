@@ -3,8 +3,8 @@ package server;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import distributed.systems.das.BattleField;
-import distributed.systems.das.GameState;
+import server.BattleField;
+import server.GameState;
 
 /**
  * A dragon is a non-playing character, which can't
@@ -117,7 +117,7 @@ public class Dragon extends Unit implements Runnable, Serializable {
 				e.printStackTrace();
 			}
 		}
-		clientSocket.unRegister();
+		//clientSocket.unRegister();
 
 	}
 
