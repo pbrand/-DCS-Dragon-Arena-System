@@ -2,6 +2,9 @@ package client;
 
 import server.BattleField;
 import core.IUnit;
+import distributed.systems.das.GameState;
+import distributed.systems.das.units.Unit.Direction;
+import distributed.systems.das.units.Unit.UnitType;
 
 public class PlayerController implements IUnit {
 	// Is used for mapping an unique id to a message sent by this unit
@@ -17,10 +20,58 @@ public class PlayerController implements IUnit {
 	}
 	
 	private void run() {
+		// TODO: - remove auto play based on math.random (so handle real user-input).
+		//       - Update the targeting system.
 		boolean running = true;
 		
 		while(running) {
-			
+			try {			
+				/* Sleep while the player is considering its next move */
+				Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
+
+				/* Stop if the player runs out of hitpoints */
+				if (getHitPoints() <= 0)
+					break;
+
+				// Randomly choose one of the four wind directions to move to if there are no units present
+				direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
+				adjacentUnitType = UnitType.undefined;
+
+				int x = this.getX();
+				int y = thix.getY();
+				
+				switch (direction) {
+					case up:
+						this.moveUnit(x, y + 1);
+					case down:
+						this.moveUnit(x, y - 1);
+					case left:
+						this.moveUnit(x - 1, y);
+					case right:
+						this.moveUnit(x + 1, y);
+						
+				}
+
+				// Get what unit lies in the target square
+				adjacentUnitType = this.getType(targetX, targetY);
+				
+				switch (adjacentUnitType) {
+					case undefined:
+						// There is no unit in the square. Move the player to this square
+						this.moveUnit(targetX, targetY);
+						break;
+					case player:
+						// There is a player in the square, attempt a healing
+						this.healDamage(targetX, targetY, getAttackPoints());
+						break;
+					case dragon:
+						// There is a dragon in the square, attempt a dragon slaying
+						this.dealDamage(targetX, targetY, getAttackPoints());
+						break;
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
