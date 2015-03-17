@@ -1,5 +1,7 @@
 package client;
 
+import common.MessageRequest;
+
 import server.BattleField;
 import core.IUnit;
 import distributed.systems.das.GameState;

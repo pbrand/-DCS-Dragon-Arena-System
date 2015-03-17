@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import common.MessageRequest;
+
 import client.Message;
 import core.IMessage;
 import core.IUnit;
@@ -45,7 +47,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 	private int unitID;
 
 	// The communication socket between this client and the board
-	protected Socket clientSocket;
+	//protected Socket clientSocket;
 	
 	// Map messages from their ids
 	private Map<Integer, Message> messageList;
@@ -78,7 +80,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 	 * this specific unit.
 	 */
 	public Unit(int maxHealth, int attackPoints) {
-		Socket localSocket = new LocalSocket();
+		//Socket localSocket = new LocalSocket();
 
 		messageList = new HashMap<Integer, Message>();
 
@@ -92,9 +94,9 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		unitID = BattleField.getBattleField().getNewUnitID();
 
 		// Create a new socket
-		clientSocket = new SynchronizedSocket(localSocket);
+		//clientSocket = new SynchronizedSocket(localSocket);
 
-		try {
+		/*try {
 			// Try to register the socket
 			clientSocket.register("D" + unitID);
 		}
@@ -102,7 +104,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 			System.err.println("Socket \"D" + unitID + "\" was already registered.");
 		}
 
-		clientSocket.addMessageReceivedHandler(this);
+		clientSocket.addMessageReceivedHandler(this); */
 	}
 
 	/**
@@ -143,7 +145,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		}
 		
 		// Send a spawn message
-		clientSocket.sendMessage(damageMessage, "localsocket://" + BattleField.serverID);
+		//clientSocket.sendMessage(damageMessage, "localsocket://" + BattleField.serverID);
 	}
 	
 	public void healDamage(int x, int y, int healed) {
@@ -164,7 +166,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		}
 
 		// Send a spawn message
-		clientSocket.sendMessage(healMessage, "localsocket://" + BattleField.serverID);
+		//clientSocket.sendMessage(healMessage, "localsocket://" + BattleField.serverID);
 	}
 
 	/**
@@ -239,12 +241,12 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		spawnMessage.put("id", id);
 
 		// Send a spawn message
-		try {
+		/*try {
 			clientSocket.sendMessage(spawnMessage, "localsocket://" + BattleField.serverID);
 		} catch (IDNotAssignedException e) {
 			System.err.println("No server found while spawning unit at location (" + x + ", " + y + ")");
 			return false;
-		}
+		} */
 
 		// Wait for the unit to be placed
 		getUnit(x, y);
@@ -267,7 +269,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		getMessage.put("id", id);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
+		//clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
 
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -300,7 +302,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		getMessage.put("id", id);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
+		//clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
 
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -330,10 +332,10 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		removeMessage.put("id", id);
 
 		// Send the removeUnit message
-		clientSocket.sendMessage(removeMessage, "localsocket://" + BattleField.serverID);
+		//clientSocket.sendMessage(removeMessage, "localsocket://" + BattleField.serverID);
 	}
 
-	protected void moveUnit(int x, int y)
+	public void moveUnit(int x, int y)
 	{
 		Message moveMessage = new Message();
 		int id = localMessageCounter++;
@@ -344,7 +346,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 		moveMessage.put("unit", this);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(moveMessage, "localsocket://" + BattleField.serverID);
+		//clientSocket.sendMessage(moveMessage, "localsocket://" + BattleField.serverID);
 
 		// Wait for the reply
 		while(!messageList.containsKey(id))

@@ -2,6 +2,8 @@ package server;
 
 import java.util.ArrayList;
 
+import common.MessageRequest;
+
 import client.Message;
 import core.IMessage;
 import server.Dragon;
@@ -14,6 +16,7 @@ import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.example.LocalSocket; */
+import server.Unit.UnitType;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -33,7 +36,7 @@ public class BattleField implements IMessage {
 	private static BattleField battlefield;
 
 	/* Primary socket of the battlefield */ 
-	private Socket serverSocket;
+	//private Socket serverSocket;
 	
 	/* The last id that was assigned to an unit. This variable is used to
 	 * enforce that each unit has its own unique id.
@@ -51,13 +54,13 @@ public class BattleField implements IMessage {
 	 * @param height of the battlefield
 	 */
 	private BattleField(int width, int height) {
-		Socket local = new LocalSocket();
+		//Socket local = new LocalSocket();
 		
 		synchronized (this) {
 			map = new Unit[width][height];
-			local.register(BattleField.serverID);
+			/*local.register(BattleField.serverID);
 			serverSocket = new SynchronizedSocket(local);
-			serverSocket.addMessageReceivedHandler(this);
+			serverSocket.addMessageReceivedHandler(this);*/
 			units = new ArrayList<Unit>();
 		}
 		
@@ -199,15 +202,15 @@ public class BattleField implements IMessage {
 		String origin = (String)msg.get("origin");
 		MessageRequest request = (MessageRequest)msg.get("request");
 		Unit unit;
-		switch(request)
+		switch(request.toString())
 		{
-			case spawnUnit:
+			case MessageRequest.spawnUnit:
 				this.spawnUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				break;
-			case putUnit:
+			case MessageRequest.putUnit:
 				this.putUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				break;
-			case getUnit:
+			case MessageRequest.getUnit:
 			{
 				reply = new Message();
 				int x = (Integer)msg.get("x");
@@ -220,7 +223,7 @@ public class BattleField implements IMessage {
 				reply.put("unit", getUnit(x, y));
 				break;
 			}
-			case getType:
+			case MessageRequest.getType:
 			{
 				reply = new Message();
 				int x = (Integer)msg.get("x");
@@ -236,7 +239,7 @@ public class BattleField implements IMessage {
 				else reply.put("type", UnitType.undefined);
 				break;
 			}
-			case dealDamage:
+			case MessageRequest.dealDamage:
 			{
 				int x = (Integer)msg.get("x");
 				int y = (Integer)msg.get("y");
@@ -248,7 +251,7 @@ public class BattleField implements IMessage {
 				 */
 				break;
 			}
-			case healDamage:
+			case MessageRequest.healDamage:
 			{
 				int x = (Integer)msg.get("x");
 				int y = (Integer)msg.get("y");
@@ -260,7 +263,7 @@ public class BattleField implements IMessage {
 				 */
 				break;
 			}
-			case moveUnit:
+			case MessageRequest.moveUnit:
 				reply = new Message();
 				this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				/* Copy the id of the message so that the unit knows 
@@ -268,18 +271,18 @@ public class BattleField implements IMessage {
 				 */
 				reply.put("id", msg.get("id"));
 				break;
-			case removeUnit:
+			case MessageRequest.removeUnit:
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
 				return;
 		}
 
-		try {
+		/* try {
 			if (reply != null)
 				serverSocket.sendMessage(reply, origin);
 		}
 		catch(IDNotAssignedException idnae)  {
 			// Could happen if the target already logged out
-		}
+		} */
 	}
 
 	/**
