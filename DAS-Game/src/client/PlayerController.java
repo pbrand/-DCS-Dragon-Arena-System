@@ -2,15 +2,14 @@ package client;
 
 import common.MessageRequest;
 
-import server.BattleField;
+import common.Enums.UnitType;
+import common.Enums.Direction;
 import core.IUnit;
-import distributed.systems.das.GameState;
-import distributed.systems.das.units.Unit.Direction;
-import distributed.systems.das.units.Unit.UnitType;
 
 public class PlayerController implements IUnit {
 	// Is used for mapping an unique id to a message sent by this unit
 	private int localMessageCounter = 0;
+	protected int timeBetweenTurns;
 	
 	public PlayerController() {
 		// Create a new player at server side
@@ -25,6 +24,9 @@ public class PlayerController implements IUnit {
 		// TODO: - remove auto play based on math.random (so handle real user-input).
 		//       - Update the targeting system.
 		boolean running = true;
+		Direction direction;
+		UnitType adjacentUnitType;
+		int targetX = 0, targetY = 0;
 		
 		while(running) {
 			try {			
@@ -39,20 +41,40 @@ public class PlayerController implements IUnit {
 				direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
 				adjacentUnitType = UnitType.undefined;
 
-				int x = this.getX();
-				int y = thix.getY();
-				
 				switch (direction) {
-					case up:
-						this.moveUnit(x, y + 1);
-					case down:
-						this.moveUnit(x, y - 1);
-					case left:
-						this.moveUnit(x - 1, y);
-					case right:
-						this.moveUnit(x + 1, y);
-						
-				}
+				case up:
+					if (this.getY() <= 0)
+						// The player was at the edge of the map, so he can't move north and there are no units there
+						continue;
+					
+					targetX = this.getX();
+					targetY = this.getY() - 1;
+					break;
+				case down:
+					if (this.getY() >= BattleField.MAP_HEIGHT - 1)
+						// The player was at the edge of the map, so he can't move south and there are no units there
+						continue;
+
+					targetX = this.getX();
+					targetY = this.getY() + 1;
+					break;
+				case left:
+					if (this.getX() <= 0)
+						// The player was at the edge of the map, so he can't move west and there are no units there
+						continue;
+
+					targetX = this.getX() - 1;
+					targetY = this.getY();
+					break;
+				case right:
+					if (this.getX() >= BattleField.MAP_WIDTH - 1)
+						// The player was at the edge of the map, so he can't move east and there are no units there
+						continue;
+
+					targetX = this.getX() + 1;
+					targetY = this.getY();
+					break;
+			}
 
 				// Get what unit lies in the target square
 				adjacentUnitType = this.getType(targetX, targetY);
@@ -222,6 +244,12 @@ public class PlayerController implements IUnit {
 			disconnectMessage.put("request", MessageRequest.disconnect);
 			disconnectMessage.put("id", id);
 		}
+	}
+
+	@Override
+	public UnitType getType(int x, int y) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

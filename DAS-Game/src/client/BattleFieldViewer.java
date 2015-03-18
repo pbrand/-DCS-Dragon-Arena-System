@@ -10,11 +10,11 @@ import java.awt.event.WindowListener;
 
 import javax.swing.JPanel;
 
-import distributed.systems.das.BattleField;
-import distributed.systems.das.GameState;
-import distributed.systems.das.units.Dragon;
-import distributed.systems.das.units.Player;
-import distributed.systems.das.units.Unit;
+import server.BattleField;
+import server.GameState;
+import server.Dragon;
+import server.Player;
+import server.Unit;
 
 /**
  * Create an viewer, which runs in a seperate thread and

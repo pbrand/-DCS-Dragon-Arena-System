@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import common.Enums.UnitType;
 import common.MessageRequest;
-
 import client.Message;
 import core.IMessage;
 import core.IUnit;
@@ -62,14 +62,6 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 	 * (See stopRunnerThread())
 	 */
 	protected Thread runnerThread;
-
-	public enum Direction {
-		up, right, down, left;
-	};
-	
-	public enum UnitType {
-		player, dragon, undefined,
-	};
 
 	/**
 	 * Create a new unit and specify the 
@@ -260,7 +252,7 @@ public abstract class Unit implements Serializable, IMessage, IUnit {
 	 * @param y: y coordinate
 	 * @return UnitType: the indicated square contains a player, a dragon or nothing.
 	 */
-	protected UnitType getType(int x, int y) {
+	public UnitType getType(int x, int y) {
 		Message getMessage = new Message(), result;
 		int id = localMessageCounter++;
 		getMessage.put("request", MessageRequest.getType);

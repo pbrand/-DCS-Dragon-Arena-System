@@ -1,5 +1,7 @@
 package core;
 
+import common.Enums.UnitType;
+
 public interface IUnit {
 
 	public void dealDamage(int x, int y, int damage);
@@ -35,6 +37,8 @@ public interface IUnit {
 	 * @return the attack points
 	 */
 	public int getAttackPoints();
+	
+	public UnitType getType(int x, int y);
 
 	public void moveUnit(int x, int y);
 	
