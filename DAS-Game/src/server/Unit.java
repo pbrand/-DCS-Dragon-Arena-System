@@ -4,13 +4,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import client.Message;
+
 import common.Enums.UnitType;
 import common.MessageRequest;
-import client.Message;
-import core.IMessage;
+
 import core.IUnit;
-import server.BattleField;
-import server.GameState;
 /*
 import server.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
@@ -30,7 +29,7 @@ import distributed.systems.example.LocalSocket;
  *  
  * @author Pieter Anemaet, Boaz Pat-El
  */
-public abstract class Unit implements Serializable, IMessage, IUnit {
+public abstract class Unit implements Serializable, IUnit {
 	private static final long serialVersionUID = -4550572524008491160L;
 
 	// Position of the unit

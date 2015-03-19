@@ -1,9 +1,10 @@
 package server;
 
+import java.rmi.Naming;
 import java.util.ArrayList;
 
+import common.Enums.UnitType;
 import common.MessageRequest;
-
 import client.Message;
 import core.IMessage;
 /*import distributed.systems.das.units.Unit.UnitType;
@@ -279,6 +280,19 @@ public class BattleField implements IMessage {
 		catch(IDNotAssignedException idnae)  {
 			// Could happen if the target already logged out
 		} */
+
+		IMessage RMIServer = null;
+		String urlServer = new String("rmi://localhost/" + origin);
+
+		// Bind to RMIServer
+		try {
+			RMIServer = (IMessage) Naming.lookup(urlServer);
+			// Attempt to send messages the specified number of times
+            RMIServer.receiveReply();
+
+		} catch(Exception e) {
+            e.printStackTrace();
+		}
 	}
 
 	/**

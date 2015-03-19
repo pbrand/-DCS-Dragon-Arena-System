@@ -3,6 +3,8 @@ package server;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import common.Enums.Direction;
+import common.Enums.UnitType;
 import server.BattleField;
 import server.GameState;
 

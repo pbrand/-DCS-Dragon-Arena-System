@@ -1,6 +1,10 @@
 package server;
 
+import java.rmi.Naming;
+
+import client.Message;
 import core.ICore;
+import core.IMessage;
 import server.BattleFieldViewer;
 import server.Dragon;
 import server.Player;
@@ -140,6 +144,34 @@ public class Core implements ICore {
 		BattleField.getBattleField().shutdown();
 		System.exit(0); // Stop all running processes
 	}
+
+	@Override
+	public void receiveMessage(Message msg) {
+		int battlefieldid = 1;
+
+		IMessage RMIServer = null;
+		String urlServer = new String("rmi://localhost/" + battlefieldid );
+
+		// Bind to RMIServer
+		try {
+			RMIServer = (IMessage) Naming.lookup(urlServer);
+			// Attempt to send messages the specified number of times
+            RMIServer.receiveMessage(msg);
+
+		} catch(Exception e) {
+            e.printStackTrace();
+		}
+		// TODO
+		
+	}
+
+	@Override
+	public void sendMessage(Message msg) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
 
 	
 }

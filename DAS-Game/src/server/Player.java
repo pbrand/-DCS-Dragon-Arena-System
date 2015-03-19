@@ -2,6 +2,8 @@ package server;
 
 import java.io.Serializable;
 
+import common.Enums.Direction;
+import common.Enums.UnitType;
 import server.BattleField;
 import server.GameState;
 import server.Unit;
@@ -70,12 +72,12 @@ public class Player extends Unit implements Runnable, Serializable {
 		
 		this.running = true;
 
-		while(GameState.getRunningState() && this.running) {
+		/*while(GameState.getRunningState() && this.running) {
 			try {			
-				/* Sleep while the player is considering its next move */
+				 Sleep while the player is considering its next move 
 				Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
 
-				/* Stop if the player runs out of hitpoints */
+				 Stop if the player runs out of hitpoints 
 				if (getHitPoints() <= 0)
 					break;
 
@@ -138,7 +140,7 @@ public class Player extends Unit implements Runnable, Serializable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-		}
+		} */
 		//clientSocket.unRegister();
 	}
 
