@@ -11,5 +11,6 @@ public class MessageRequest {
 	public static final String moveUnit = "moveUnit";
 	public static final String putUnit = "putUnit";
 	public static final Object disconnect = "disconnect";
+	public static final String spawnAck = "spawnAck";
 
 }

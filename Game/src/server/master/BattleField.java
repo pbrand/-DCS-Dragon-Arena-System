@@ -1,15 +1,16 @@
 package server.master;
 
-import java.net.InetAddress;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import server.helper.IBattleField;
+
 import common.Enums.UnitType;
-import common.IPlayerController;
+import common.IRunner;
 import common.Message;
 import common.MessageRequest;
 
@@ -74,7 +75,7 @@ public class BattleField implements IBattleField {
 	@Override
 	public void sendMessage(Message msg) {
 		// TODO Auto-generated method stub
-		IPlayerController RMIServer = null;
+		IRunner RMIServer = null;
 		String clienthost = null;
 		try {
 			clienthost = RemoteServer.getClientHost();
@@ -82,11 +83,12 @@ public class BattleField implements IBattleField {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		String urlServer = new String("rmi://" + clienthost + ":" + msg.getSendersPort() + "/" + msg.getRecipient());
+		String urlServer = new String("rmi://" + clienthost + ":" + msg.getMiddlemanPort() + "/" + msg.getMiddleman());
 
 		// Bind to RMIServer
 		try {
-			RMIServer = (IPlayerController) Naming.lookup(urlServer);
+			System.out.println(urlServer);
+			RMIServer = (IRunner) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
 
@@ -109,11 +111,16 @@ public class BattleField implements IBattleField {
 		Unit unit;
 		switch (request) {
 		case MessageRequest.spawnUnit: {
-			boolean spawned = this.spawnUnit((Unit) msg.get("unit"),
-					(Integer) msg.get("x"), (Integer) msg.get("y"));
+			System.out.println("Spawning: " + msg.getSender());
+			Unit player = new Player();
+			int[] pos = getAvailablePosition();
+			boolean spawned = this.spawnUnit(player, pos[0], pos[1]);
 			reply = new Message(from);
+			reply.setRequest(MessageRequest.spawnAck);
 			reply.put("spawned", spawned);
 			reply.setSendersPort(msg.getSendersPort());
+			reply.setMiddleman(msg.getMiddleman());
+			reply.setMiddlemanPort(msg.getMiddlemanPort());
 			break;
 		}
 		case MessageRequest.putUnit:
@@ -194,6 +201,29 @@ public class BattleField implements IBattleField {
 		}
 
 	}
+	
+	public int[] getAvailablePosition() {
+		int[] pos = null;
+		
+		Random random = new Random();
+		boolean running = true;
+		int x = 0;
+		int y = 0;
+		
+		while(running) {
+			x = (int) random.nextInt(MAP_WIDTH - 1);
+			y = (int) random.nextInt(MAP_HEIGHT - 1);
+			System.out.println("x: " + x + " ,y: " + y);
+			if(getUnit(x ,y) == null) {
+				running = false;
+			}
+		}
+		pos = new int[2];
+		pos[0] = x;
+		pos[1] = y;
+		System.out.println("Position: " + pos);
+		return pos;
+	}
 
 	/**
 	 * Put a unit at the specified position. First, it checks whether the
@@ -239,6 +269,7 @@ public class BattleField implements IBattleField {
 			unit.setPosition(x, y);
 		}
 		units.add(unit);
+		System.out.println("Unit spwaned");
 
 		return true;
 	}

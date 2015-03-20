@@ -13,9 +13,11 @@ public class Message implements Serializable {
 	private int messsageID;
 
 	private String sender;
-	private int sendersPort;
+	private int sendersPort = 1099;
 
 	private String recipient;
+	private String middleman;
+	private int middlemanPort = 1099;
 	private ArrayList<String> updates;
 	private String request;
 	private HashMap<String, Object> values;
@@ -80,17 +82,37 @@ public class Message implements Serializable {
 		// TODO Auto-generated method stub
 		return values.get(key);
 	}
+	
+	public int getMiddlemanPort() {
+		return middlemanPort;
+	}
+
+	public void setMiddlemanPort(int middlemanPort) {
+		this.middlemanPort = middlemanPort;
+	}
+
 
 	public void put(String key, Object object) {
 		values.put(key, object);
 	}
 
+	
+
 	@Override
 	public String toString() {
 		return "Message [messsageID=" + messsageID + ", sender=" + sender
 				+ ", sendersPort=" + sendersPort + ", recipient=" + recipient
-				+ ", updates=" + updates + ", request=" + request + ", values="
-				+ values + "]";
+				+ ", middleman=" + middleman + ", middlemanPort="
+				+ middlemanPort + ", updates=" + updates + ", request="
+				+ request + ", values=" + values + "]";
+	}
+
+	public String getMiddleman() {
+		return middleman;
+	}
+
+	public void setMiddleman(String middleman) {
+		this.middleman = middleman;
 	}
 
 }
