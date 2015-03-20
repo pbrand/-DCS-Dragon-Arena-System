@@ -5,7 +5,6 @@ import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.util.HashMap;
 
-import server.master.Unit;
 import common.Enums.Direction;
 import common.IPlayerController;
 import common.IRunner;
@@ -14,7 +13,7 @@ import common.MessageRequest;
 
 public class PlayerRunner implements IRunner {
 
-	private static String battleServerLocation = "145.94.181.115:29242";
+	private static String battleServerLocation = "192.168.56.1:1099";
 	private static String battleServer = "main_battle_server";
 	private HashMap<String,String> clients;
 	private int battleFieldMapHeight;
@@ -60,11 +59,11 @@ public class PlayerRunner implements IRunner {
 
 	@Override
 	public void receiveMessage(Message msg) {
-		System.out.println(msg);
+		System.out.println("Received: " + msg);
 		switch(msg.getRequest()) {
 			case MessageRequest.spawnUnit:
 			try {
-				clients.put(msg.getSender(),RemoteServer.getClientHost() + ":" + msg.getSendersPort());
+				clients.put(msg.getSender(),RemoteServer.getClientHost() + ":" + msg.getMiddlemanPort());
 			} catch (ServerNotActiveException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

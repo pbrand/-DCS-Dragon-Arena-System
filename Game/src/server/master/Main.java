@@ -19,7 +19,7 @@ public class Main {
 		 * if (System.getSecurityManager() == null) {
 		 * System.setSecurityManager(new SecurityManager()); }
 		 */
-		int port = 29242;
+		int port = 1099;
 		IBattleField stub = null;
 		try {
 

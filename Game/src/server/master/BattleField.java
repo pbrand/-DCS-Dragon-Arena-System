@@ -118,7 +118,6 @@ public class BattleField implements IBattleField {
 			reply = new Message(from);
 			reply.setRequest(MessageRequest.spawnAck);
 			reply.put("spawned", spawned);
-			reply.setSendersPort(msg.getSendersPort());
 			reply.setMiddleman(msg.getMiddleman());
 			reply.setMiddlemanPort(msg.getMiddlemanPort());
 			break;

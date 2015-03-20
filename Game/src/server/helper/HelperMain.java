@@ -7,8 +7,6 @@ import java.rmi.server.UnicastRemoteObject;
 
 import common.IRunner;
 
-import server.master.BattleField;
-
 public class HelperMain {
 
 	public final static String serverID = "helper_battle_server";
@@ -28,7 +26,9 @@ public class HelperMain {
 					.exportObject(runner, 0);
 
 			Registry reg = LocateRegistry.createRegistry(6115);
-
+			
+			String address = reg.toString().split("endpoint:\\[")[1].split("\\]")[0];
+			
 			reg.rebind(serverID, stub);
 			// registry.rebind("Process", stub);
 			System.out.println("Battlefield helper running, server: " + serverID + ", reg: " + reg.toString());

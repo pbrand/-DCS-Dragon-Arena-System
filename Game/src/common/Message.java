@@ -13,7 +13,7 @@ public class Message implements Serializable {
 	private int messsageID;
 
 	private String sender;
-	private int sendersPort = 1099;
+	// private int sendersPort = 1099;
 
 	private String recipient;
 	private String middleman;
@@ -36,14 +36,6 @@ public class Message implements Serializable {
 		this.request = request;
 		this.recipient = recipient;
 		values = new HashMap<String, Object>();
-	}
-
-	public int getSendersPort() {
-		return sendersPort;
-	}
-
-	public void setSendersPort(int sendersPort) {
-		this.sendersPort = sendersPort;
 	}
 
 	public void setSender(String sender) {
@@ -82,7 +74,7 @@ public class Message implements Serializable {
 		// TODO Auto-generated method stub
 		return values.get(key);
 	}
-	
+
 	public int getMiddlemanPort() {
 		return middlemanPort;
 	}
@@ -91,20 +83,8 @@ public class Message implements Serializable {
 		this.middlemanPort = middlemanPort;
 	}
 
-
 	public void put(String key, Object object) {
 		values.put(key, object);
-	}
-
-	
-
-	@Override
-	public String toString() {
-		return "Message [messsageID=" + messsageID + ", sender=" + sender
-				+ ", sendersPort=" + sendersPort + ", recipient=" + recipient
-				+ ", middleman=" + middleman + ", middlemanPort="
-				+ middlemanPort + ", updates=" + updates + ", request="
-				+ request + ", values=" + values + "]";
 	}
 
 	public String getMiddleman() {
@@ -113,6 +93,14 @@ public class Message implements Serializable {
 
 	public void setMiddleman(String middleman) {
 		this.middleman = middleman;
+	}
+
+	@Override
+	public String toString() {
+		return "Message [messsageID=" + messsageID + ", sender=" + sender
+				+ ", recipient=" + recipient + ", middleman=" + middleman
+				+ ", middlemanPort=" + middlemanPort + ", updates=" + updates
+				+ ", request=" + request + ", values=" + values + "]";
 	}
 
 }

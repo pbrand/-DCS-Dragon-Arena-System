@@ -10,7 +10,9 @@ import common.IPlayerController;
 public class ClientMain {
 
 	public static String serverID;
-	private static int myPort;
+	
+	private static String host = "192.168.56.1";
+	private static int port = 6115;
 
 	public static void main(String[] args) throws RemoteException {
 
@@ -22,28 +24,31 @@ public class ClientMain {
 		IPlayerController player = null;
 		IPlayerController stub = null;
 		try {
-			// System.setProperty("java.rmi.server.hostname","192.168.56.1");
-			myPort = Integer.parseInt(args[0]);
-
-			String playerName = args[1];
+			String playerName = args[0];
 			serverID = playerName;
-			player = new PlayerController(playerName, myPort);
+			player = new PlayerController(playerName, host, port);
 
 			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
 					0);
 
-			Registry reg = LocateRegistry.createRegistry(myPort);
+			Registry reg = LocateRegistry.getRegistry(host, port);
 
 			reg.rebind(serverID, stub);
 			System.out.println("PlayerController running, server: " + serverID
 					+ ", reg: " + reg.toString());
-
+			printRegistry(reg.list());
 			player.spawnPlayer();
 
 		} catch (RemoteException e) {
 			// Registry reg = LocateRegistry.createRegistry(0);
 			// .rebind(serverID, player);
 			e.printStackTrace();
+		}
+	}
+	
+	private static void printRegistry(String [] array) {
+		for (int i = 0; i < array.length; i++) {
+			System.out.println("item[" + i + "]: " + array[i]);
 		}
 	}
 
