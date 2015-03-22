@@ -25,7 +25,6 @@ public class PlayerRunner implements IRunner {
 		this.clients = new HashMap<String,String>();
 		this.battleServerLocation = battleServerLocation;
 		this.battleServer = battleServer;
-
 	}
 	
 	@Override
@@ -151,6 +150,7 @@ public class PlayerRunner implements IRunner {
     			if (pos[0] >= this.battleFieldMapWidth - 1)
     				// The player was at the edge of the map, so he can't move east and there are no units there
     				break;
+
 
     			targetX = targetX + 1;
     			break;

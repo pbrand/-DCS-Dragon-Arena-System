@@ -7,15 +7,15 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 import server.helper.IBattleField;
+
 import common.IPlayerController;
 
 public class ClientMain {
 
 	public static String serverID;
-	
+
 	private static String helper_host;
 	private static int helper_port;
-
 
 	public static void main(String[] args) throws RemoteException {
 
@@ -29,23 +29,24 @@ public class ClientMain {
 		try {
 			String playerName = args[0];
 			serverID = playerName;
-			
+
 			String battleServer = "main_battle_server";
 			String battleServerLocation = "192.168.56.1:6115";
 			String res = getHelperServer(battleServerLocation, battleServer);
 			if (res.equals("noServers")) {
 				return;
 			}
-			
+
 			String[] helper = res.split(":");
-			
+
 			String battle_helper = helper[0];
 			helper_host = helper[1];
 			helper_port = Integer.parseInt(helper[2]);
-			
+
 			System.out.println("host: " + helper_host + ":" + helper_port);
-			
-			player = new PlayerController(playerName, helper_host, helper_port, battle_helper, battleServerLocation, battleServer);
+
+			player = new PlayerController(playerName, helper_host, helper_port,
+					battle_helper, battleServerLocation, battleServer);
 
 			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
 					0);
@@ -64,10 +65,11 @@ public class ClientMain {
 			e.printStackTrace();
 		}
 	}
-	
-	public static String getHelperServer(String battleServerLocation, String battleServer) {
+
+	public static String getHelperServer(String battleServerLocation,
+			String battleServer) {
 		String helper = null;
-		
+
 		IBattleField RMIServer = null;
 		String urlServer = new String("rmi://" + battleServerLocation + "/"
 				+ battleServer);
@@ -85,11 +87,11 @@ public class ClientMain {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return helper;
 	}
-	
-	private static void printRegistry(String [] array) {
+
+	private static void printRegistry(String[] array) {
 		for (int i = 0; i < array.length; i++) {
 			System.out.println("item[" + i + "]: " + array[i]);
 		}

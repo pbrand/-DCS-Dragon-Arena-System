@@ -209,14 +209,9 @@ public class BattleField implements IBattleField {
 			break;
 		}
 		case MessageRequest.moveUnit: {
-			// reply = new Message(from);
+
 			this.moveUnit(units.get((String) msg.get("playerID")),
 					(int) msg.get("x"), (int) msg.get("y"));
-			/*
-			 * Copy the id of the message so that the unit knows what message
-			 * the battlefield responded to.
-			 */
-			// reply.put("id", msg.get("id"))
 
 			break;
 		}
@@ -224,12 +219,7 @@ public class BattleField implements IBattleField {
 			this.removeUnit((Integer) msg.get("x"), (Integer) msg.get("y"));
 			return;
 		}
-		// case MessageRequest.getBattleFieldInfo: {
-		// reply = new Message(from);
-		// reply.setRequest(MessageRequest.getBattleFieldInfo);
-		// reply.put("mapWidth", MAP_WIDTH);
-		// reply.put("mapHeight", MAP_HEIGHT);
-		// }
+
 		}
 
 		if (reply != null) {
@@ -325,9 +315,6 @@ public class BattleField implements IBattleField {
 	private synchronized boolean moveUnit(Unit unit, int newX, int newY) {
 		int originalX = unit.getX();
 		int originalY = unit.getY();
-
-		// if (unit.getHitPoints() <= 0)
-		// return false;
 
 		if (newX >= 0 && newX < BattleField.MAP_WIDTH)
 			if (newY >= 0 && newY < BattleField.MAP_HEIGHT)
@@ -484,7 +471,9 @@ public class BattleField implements IBattleField {
 			return UnitType.player;
 		else if (getUnit(x, y) instanceof Dragon)
 			return UnitType.dragon;
+
 		else
 			return UnitType.undefined;
+
 	}
 }
