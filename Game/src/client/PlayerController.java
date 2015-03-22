@@ -38,7 +38,7 @@ public class PlayerController implements IPlayerController {
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -59,6 +59,7 @@ public class PlayerController implements IPlayerController {
 			// there are no units present
 			direction = Direction.values()[(int) (Direction.values().length * Math
 					.random())];
+			System.out.println("Move: " + direction.toString());
 			movePlayer(direction);
 		}
 	}
@@ -83,9 +84,7 @@ public class PlayerController implements IPlayerController {
 	private Message createMoveMessage(Direction direction) {
 		Message msg = createMessage(battleServer);
 		msg.setRequest(MessageRequest.moveUnit);
-		// msg.put("Unit", );
-		// msg.put("x", );
-		// msg.put("y", );
+		msg.put("direction", direction);
 
 		return msg;
 	}

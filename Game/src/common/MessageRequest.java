@@ -13,4 +13,6 @@ public class MessageRequest {
 	public static final Object disconnect = "disconnect";
 	public static final String spawnAck = "spawnAck";
 
+	//public static final String getBattleFieldInfo = "getBattleFieldInfo";
+	//public static final String returnBattleFieldInfo = "returnBattleFieldInfo";
 }

@@ -9,7 +9,7 @@ import server.helper.IBattleField;
 import server.master.BattleField;
 
 public class Main {
-
+	private static BattleFieldViewer bfv;
 	public static String serverID = "main_battle_server";
 
 	public static void main(String[] args) throws RemoteException {
@@ -23,7 +23,8 @@ public class Main {
 		IBattleField stub = null;
 		try {
 
-			IBattleField battlefield = BattleField.getBattleField();
+			BattleField battlefield = BattleField.getBattleField();
+			bfv = new BattleFieldViewer(battlefield);
 
 			stub = (IBattleField) UnicastRemoteObject
 					.exportObject(battlefield, 0);
@@ -34,6 +35,8 @@ public class Main {
 			// registry.rebind("Process", stub);
 			System.out.println("Battlefield running, server: " + serverID
 					+ ", reg: " + reg.toString());
+			
+			
 		} catch (RemoteException e) {			
 			Registry reg = LocateRegistry.getRegistry(port);
 			serverID = "battle_server" + "_" + reg.list().length;

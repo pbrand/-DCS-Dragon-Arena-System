@@ -5,14 +5,16 @@ import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import server.helper.IBattleField;
-
 import common.Enums.UnitType;
 import common.IRunner;
 import common.Message;
 import common.MessageRequest;
+import server.master.Player;
+import server.master.Dragon;
 
 public class BattleField implements IBattleField {
 
@@ -34,7 +36,7 @@ public class BattleField implements IBattleField {
 	// public final static String serverID = "server";
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
-	private ArrayList<Unit> units;
+	private HashMap<String, Unit> units;
 
 	private ArrayList<Message> messages;
 
@@ -54,7 +56,7 @@ public class BattleField implements IBattleField {
 
 		synchronized (this) {
 			map = new Unit[MAP_WIDTH][MAP_HEIGHT];
-			units = new ArrayList<Unit>();
+			units = new HashMap<String, Unit>();
 			messages = new ArrayList<Message>();
 		}
 		System.out.println("Battlefield created");
@@ -114,7 +116,7 @@ public class BattleField implements IBattleField {
 			System.out.println("Spawning: " + msg.getSender());
 			Unit player = new Player();
 			int[] pos = getAvailablePosition();
-			boolean spawned = this.spawnUnit(player, pos[0], pos[1]);
+			boolean spawned = this.spawnUnit(from, player, pos[0], pos[1]);
 			reply = new Message(from);
 			reply.setRequest(MessageRequest.spawnAck);
 			reply.put("spawned", spawned);
@@ -122,10 +124,11 @@ public class BattleField implements IBattleField {
 			reply.setMiddlemanPort(msg.getMiddlemanPort());
 			break;
 		}
-		case MessageRequest.putUnit:
+		case MessageRequest.putUnit: {
 			this.putUnit((Unit) msg.get("unit"), (Integer) msg.get("x"),
 					(Integer) msg.get("y"));
 			break;
+		}
 		case MessageRequest.getUnit: {
 			reply = new Message(from);
 			int x = (Integer) msg.get("x");
@@ -141,8 +144,8 @@ public class BattleField implements IBattleField {
 		}
 		case MessageRequest.getType: {
 			reply = new Message(from);
-			int x = (Integer) msg.get("x");
-			int y = (Integer) msg.get("y");
+			int x = (int) msg.get("x");
+			int y = (int) msg.get("y");
 			/*
 			 * Copy the id of the message so that the unit knows what message
 			 * the battlefield responded to.
@@ -180,19 +183,28 @@ public class BattleField implements IBattleField {
 			 */
 			break;
 		}
-		case MessageRequest.moveUnit:
-			reply = new Message(from);
-			this.moveUnit((Unit) msg.get("unit"), (Integer) msg.get("x"),
-					(Integer) msg.get("y"));
+		case MessageRequest.moveUnit: {
+			//reply = new Message(from);
+			this.moveUnit(units.get((String) msg.get("playerID")), (int) msg.get("x"),
+					(int) msg.get("y"));
 			/*
 			 * Copy the id of the message so that the unit knows what message
 			 * the battlefield responded to.
 			 */
-			reply.put("id", msg.get("id"));
+			//reply.put("id", msg.get("id"))
+			
 			break;
-		case MessageRequest.removeUnit:
+		}
+		case MessageRequest.removeUnit: {
 			this.removeUnit((Integer) msg.get("x"), (Integer) msg.get("y"));
 			return;
+		}
+//		case MessageRequest.getBattleFieldInfo: {
+//			reply = new Message(from);
+//			reply.setRequest(MessageRequest.getBattleFieldInfo);
+//			reply.put("mapWidth", MAP_WIDTH);
+//			reply.put("mapHeight", MAP_HEIGHT);
+//		}
 		}
 
 		if (reply != null) {
@@ -259,7 +271,7 @@ public class BattleField implements IBattleField {
 	 *            is the y position.
 	 * @return true when the unit has been put on the specified position.
 	 */
-	private boolean spawnUnit(Unit unit, int x, int y) {
+	private boolean spawnUnit(String id, Unit unit, int x, int y) {
 		synchronized (this) {
 			if (map[x][y] != null)
 				return false;
@@ -267,7 +279,7 @@ public class BattleField implements IBattleField {
 			map[x][y] = unit;
 			unit.setPosition(x, y);
 		}
-		units.add(unit);
+		units.put(id, unit);
 		System.out.println("Unit spwaned");
 
 		return true;
@@ -287,10 +299,10 @@ public class BattleField implements IBattleField {
 	 */
 	private synchronized boolean moveUnit(Unit unit, int newX, int newY) {
 		int originalX = unit.getX();
-		int originalY = unit.getX();
+		int originalY = unit.getY();
 
-		if (unit.getHitPoints() <= 0)
-			return false;
+//		if (unit.getHitPoints() <= 0)
+//			return false;
 
 		if (newX >= 0 && newX < BattleField.MAP_WIDTH)
 			if (newY >= 0 && newY < BattleField.MAP_HEIGHT)
@@ -348,4 +360,31 @@ public class BattleField implements IBattleField {
 		return ++lastUnitID;
 	}
 
+	@Override
+	public int[] getPosition(String id) throws RemoteException {
+		int[] pos = new int[2];
+		pos[0] = units.get(id).getX();
+		pos[1] = units.get(id).getY();
+		
+		return pos;
+	}
+
+	@Override
+	public int getMapHeight() throws RemoteException {
+		return this.MAP_HEIGHT;
+	}
+
+	@Override
+	public int getMapWidth() throws RemoteException {
+		return this.MAP_WIDTH;
+	}
+
+	@Override
+	public UnitType getType(int x, int y) throws RemoteException {
+		if (getUnit(x, y) instanceof Player)
+			return UnitType.player;
+		else if (getUnit(x, y) instanceof Dragon)
+			return UnitType.dragon;
+		else return UnitType.undefined;
+	}
 }

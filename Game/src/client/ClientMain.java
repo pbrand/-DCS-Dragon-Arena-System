@@ -11,7 +11,7 @@ public class ClientMain {
 
 	public static String serverID;
 	
-	private static String host = "192.168.56.1";
+	private static String host = "192.168.1.134";//"192.168.56.1";
 	private static int port = 6115;
 
 	public static void main(String[] args) throws RemoteException {
