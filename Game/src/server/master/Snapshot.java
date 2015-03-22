@@ -2,6 +2,7 @@ package server.master;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Snapshot implements Serializable {
 
@@ -10,7 +11,7 @@ public class Snapshot implements Serializable {
 
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
-	private ArrayList<Unit> units;
+	private HashMap<String, Unit> units;
 
 	/**
 	 * 
@@ -37,11 +38,11 @@ public class Snapshot implements Serializable {
 		this.lastUnitID = lastUnitID;
 	}
 
-	public ArrayList<Unit> getUnits() {
+	public HashMap<String, Unit> getUnits() {
 		return units;
 	}
 
-	public void setUnits(ArrayList<Unit> units) {
+	public void setUnits(HashMap<String, Unit> units) {
 		this.units = units;
 	}
 

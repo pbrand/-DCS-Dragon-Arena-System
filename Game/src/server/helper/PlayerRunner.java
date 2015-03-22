@@ -1,11 +1,13 @@
 package server.helper;
 
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.util.HashMap;
 
 import common.Enums.Direction;
+import common.Enums.UnitType;
 import common.IPlayerController;
 import common.IRunner;
 import common.Message;
@@ -13,14 +15,17 @@ import common.MessageRequest;
 
 public class PlayerRunner implements IRunner {
 
-	private static String battleServerLocation = "192.168.56.1:1099";
-	private static String battleServer = "main_battle_server";
+	private String battleServerLocation;
+	private String battleServer;
 	private HashMap<String,String> clients;
-	private int battleFieldMapHeight;
-	private int battleFieldMapWidth;
-	
-	public PlayerRunner() {
-		clients = new HashMap<String,String>();
+	private int battleFieldMapHeight = 0;
+	private int battleFieldMapWidth = 0;
+
+	public PlayerRunner(String battleServerLocation, String battleServer) {
+		this.clients = new HashMap<String,String>();
+		this.battleServerLocation = battleServerLocation;
+		this.battleServer = battleServer;
+
 	}
 	
 	@Override
@@ -71,10 +76,13 @@ public class PlayerRunner implements IRunner {
 				sendMessageToServer(msg);
 				break;
 			case MessageRequest.moveUnit:
-				moveUnit((Direction) msg.get("direction"));
+				moveUnit(msg.getSender(), (Direction) msg.get("direction"));
 				break;
 			case MessageRequest.spawnAck:
 				sendMessageToClient(msg);
+			//case MessageRequest.getBattleFieldInfo:
+			//	this.battleFieldMapWidth = (int) msg.get("mapWidth");
+			//	this.battleFieldMapHeight = (int) msg.get("mapHeight");
 			default:
 				break;
 		}
@@ -84,57 +92,109 @@ public class PlayerRunner implements IRunner {
 	 * Retrieve information about the battlefield from the main server. (We need MapHeight and MapWidth)
 	 */
 	private void getBattleFieldInfo() {
-		// TODO Auto-generated method stub
+//		Message msg = new Message(battleServer);
+//		msg.setRequest(MessageRequest.getBattleFieldInfo);
+//		this.sendMessageToServer(msg);
 		
-	}
-	
-	private void moveUnit(Direction direction) {
-		int targetX = this.getX();
-		int targetY = this.getY();
-		
-		switch (direction) {
-		case up:
-			if (this.getY() <= 0)
-				// The player was at the edge of the map, so he can't move north and there are no units there
-				break;
-			
-			targetY = targetY - 1;
-			break;
-		case down:
-			if (this.getY() >= this.battleFieldMapHeight - 1)
-				// The player was at the edge of the map, so he can't move south and there are no units there
-				break;
-			
-			targetY = targetY + 1;
-			break;
-		case left:
-			if (this.getX() <= 0)
-				// The player was at the edge of the map, so he can't move west and there are no units there
-				break;
+		IBattleField RMIServer = null;
+		String urlServer = new String("rmi://" + battleServerLocation + "/" + battleServer);
+		// Bind to RMIServer
+		try {
+			RMIServer = (IBattleField) Naming.lookup(urlServer);
+			// Attempt to send messages the specified number of times
+            this.battleFieldMapWidth = RMIServer.getMapWidth();
+            this.battleFieldMapHeight = RMIServer.getMapHeight();
 
-			targetX = targetX - 1;
-			break;
-		case right:
-			if (this.getX() >= this.battleFieldMapWidth - 1)
-				// The player was at the edge of the map, so he can't move east and there are no units there
-				break;
-
-			targetX = targetX + 1;
-			break;
+		} catch(Exception e) {
+            e.printStackTrace();
 		}
 	}
-
-	/*
-	 * Retrieve X position of the player from the battlefield
-	 */
-	private int getX() {
-		return 0;
-	}
 	
-	/*
-	 * Retrieve Y position of the player from the battlefield
-	 */
-	private int getY() {
-		return 0;
+	private void moveUnit(String id, Direction direction) {
+		IBattleField RMIServer = null;
+		String urlServer = new String("rmi://" + battleServerLocation + "/" + battleServer);
+
+		int[] pos = null;
+		// Bind to RMIServer
+		try {
+			RMIServer = (IBattleField) Naming.lookup(urlServer);
+			// Attempt to send messages the specified number of times
+            pos = RMIServer.getPosition(id);
+            System.out.println("Position of player: " + pos[0] + " " + pos[1]);
+             		
+    		int targetX = pos[0];
+    		int targetY = pos[1];
+    		
+    		switch (direction) {
+    		case up:
+    			if (pos[1] <= 0)
+    				// The player was at the edge of the map, so he can't move north and there are no units there
+    				break;
+    			
+    			targetY = targetY - 1;
+    			break;
+    		case down:
+    			if (pos[1] >= this.battleFieldMapHeight - 1)
+    				// The player was at the edge of the map, so he can't move south and there are no units there
+    				break;
+    			
+    			targetY = targetY + 1;
+    			break;
+    		case left:
+    			if (pos[0] <= 0)
+    				// The player was at the edge of the map, so he can't move west and there are no units there
+    				break;
+
+    			targetX = targetX - 1;
+    			break;
+    		case right:
+    			if (pos[0] >= this.battleFieldMapWidth - 1)
+    				// The player was at the edge of the map, so he can't move east and there are no units there
+    				break;
+
+    			targetX = targetX + 1;
+    			break;
+    		}
+    		
+			// Get what unit lies in the target square
+			UnitType adjacentUnitType = RMIServer.getType(targetX, targetY);
+			
+			Message msg;
+			switch (adjacentUnitType) {
+				case undefined:
+					// There is no unit in the square. Move the player to this square
+					msg = new Message(battleServer);
+					msg.setRequest(MessageRequest.moveUnit);
+					msg.put("playerID", id);
+					msg.put("x", targetX);
+					msg.put("y", targetY);
+					this.sendMessageToServer(msg);	
+					break;
+				case player:
+//					// There is a player in the square, attempt a healing
+//					this.healDamage(targetX, targetY, getAttackPoints());
+					break;
+				case dragon:
+//					// There is a dragon in the square, attempt a dragon slaying
+//					this.dealDamage(targetX, targetY, getAttackPoints());
+					break;
+			}
+
+		} catch(Exception e) {
+            e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	public void ping() throws RemoteException {
+		//System.out.println("Still alive");
+	}
+
+	@Override
+	public void registerWithServer(String player, String address)
+			throws RemoteException {
+		this.clients.put(player, address);
+		
 	}
 }

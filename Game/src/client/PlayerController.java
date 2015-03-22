@@ -1,6 +1,12 @@
 package client;
 
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 import common.Enums.Direction;
 import common.IPlayerController;
@@ -11,8 +17,9 @@ import common.MessageRequest;
 public class PlayerController implements IPlayerController {
 
 	private String playerID;
-	private static String battleServer = "main_battle_server";
-	private static String battleHelper = "helper_battle_server";
+	private String battleServerLocation;
+	private String battleServer;
+	private String battleHelper;
 	private int port; // helper port
 	private String host; // helper host
 
@@ -21,24 +28,27 @@ public class PlayerController implements IPlayerController {
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
 
-	public PlayerController(String playerID, String host, int port) {
+	public PlayerController(String playerID, String host, int port, String battle_helper, String battleServerLocation, String battle_server) {
 		// TODO Auto-generated constructor stub
 		this.playerID = playerID;
 		this.port = port;
 		this.host = host;
+		this.battleHelper = battle_helper;
+		this.battleServer = battle_server;
+		this.battleServerLocation = battleServerLocation;
 	}
 
 	public void run() {
 		Direction direction;
 		this.running = true;
-
+		
 		int i = 0;
 		// TODO This is an infinite loop until it receives a message that it
 		// should stop. That's tricky.
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -59,6 +69,7 @@ public class PlayerController implements IPlayerController {
 			// there are no units present
 			direction = Direction.values()[(int) (Direction.values().length * Math
 					.random())];
+			System.out.println("Move: " + direction.toString());
 			movePlayer(direction);
 		}
 	}
@@ -83,9 +94,7 @@ public class PlayerController implements IPlayerController {
 	private Message createMoveMessage(Direction direction) {
 		Message msg = createMessage(battleServer);
 		msg.setRequest(MessageRequest.moveUnit);
-		// msg.put("Unit", );
-		// msg.put("x", );
-		// msg.put("y", );
+		msg.put("direction", direction);
 
 		return msg;
 	}
@@ -107,6 +116,13 @@ public class PlayerController implements IPlayerController {
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
 
+		} catch (NotBoundException | MalformedURLException | RemoteException e) {
+			e.printStackTrace();
+			if(this.resetHelperServer()) {
+				this.sendMessage(msg);
+			} else {
+				System.out.println("no server is online");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -137,6 +153,46 @@ public class PlayerController implements IPlayerController {
 		msg.setMiddlemanPort(port);
 		
 		return msg;
+	}
+	
+	private boolean resetHelperServer(){
+		boolean reset = false;		
+		String res = ClientMain.getHelperServer(battleServerLocation, battleServer);
+		
+		if (res.equals("noServers")) {
+			this.running = false;
+			return reset;			
+		}
+		
+		String[] newHelper = res.split(":");
+		this.battleHelper = newHelper[0];
+		this.host = newHelper[1];
+		this.port = Integer.parseInt(newHelper[2]);
+		
+		try {
+			Registry reg = LocateRegistry.getRegistry(host, port);
+			reg.rebind(this.playerID, this);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return reset;
+		}
+		
+		String urlServer = new String("rmi://" + host + ":" + port + "/"
+				+ battleHelper);
+
+		try {
+			IRunner RMIServer = (IRunner) Naming.lookup(urlServer);
+			RMIServer.registerWithServer(this.playerID, host + ":" + "/");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("Reset succesfull, server: " + host + ":" + port );
+		reset = true;
+		
+		return reset;
 	}
 
 }

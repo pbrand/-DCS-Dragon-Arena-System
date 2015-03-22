@@ -3,7 +3,9 @@ package server.master;
 import java.io.Serializable;
 
 public abstract class Unit implements Serializable {
-
+	// Position of the unit
+		protected int x, y;
+		
 	/**
 	 * 
 	 */
@@ -15,8 +17,8 @@ public abstract class Unit implements Serializable {
 	}
 
 	public void setPosition(int x, int y) {
-		// TODO Auto-generated method stub
-		
+		this.x = x;
+		this.y = y;
 	}
 
 	public int getHitPoints() {
@@ -26,7 +28,12 @@ public abstract class Unit implements Serializable {
 
 	public int getX() {
 		// TODO Auto-generated method stub
-		return 0;
+		return this.x;
+	}
+	
+	public int getY() {
+		// TODO Auto-generated method stub
+		return this.y;
 	}
 
 	public void disconnect() {
