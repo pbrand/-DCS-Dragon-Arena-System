@@ -9,6 +9,7 @@ import server.helper.IBattleField;
 import server.master.BattleField;
 
 public class Main {
+	@SuppressWarnings("unused")
 	private static BattleFieldViewer bfv;
 	public static String serverID = "main_battle_server";
 

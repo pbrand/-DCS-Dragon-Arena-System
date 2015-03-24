@@ -13,7 +13,10 @@ public class HelperMain {
 
 	public static void main(String[] args) throws RemoteException {
 
-		String battleServerLocation = "192.168.56.1:6115";
+		/**
+		 * battleServerLocation location should be provider in host:port format
+		 */
+		String battleServerLocation = args[0];
 		String battleServer = "main_battle_server";
 		String serverID = "helper_battle_server_" + randomString(10);
 
@@ -35,10 +38,8 @@ public class HelperMain {
 					+ serverID + ", reg: " + reg.toString());
 			bindWithMainServer(battleServerLocation, battleServer, serverID,
 					address);
-			
+
 		} catch (RemoteException e) {
-			// Registry reg = LocateRegistry.createRegistry(1099);
-			// reg.rebind(serverID, runner);
 			e.printStackTrace();
 		}
 	}
@@ -49,16 +50,15 @@ public class HelperMain {
 		String urlServer = new String("rmi://" + battleServerLocation + "/"
 				+ battleServer);
 
-		// Bind to RMIServer
 		try {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			RMIServer.putHelper(serverID, myAddress);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
-	
+
 	private static String randomString(int len) {
 		final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		Random rnd = new Random();

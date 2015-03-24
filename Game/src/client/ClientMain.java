@@ -5,9 +5,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Random;
 
 import server.helper.IBattleField;
-
 import common.IPlayerController;
 
 public class ClientMain {
@@ -27,11 +27,21 @@ public class ClientMain {
 		IPlayerController player = null;
 		IPlayerController stub = null;
 		try {
-			String playerName = args[0];
+			String playerName = null;
+			
+			if (args.length < 2) {
+				playerName = "p_" + randomString(10);
+			} else {
+				playerName = args[1];
+			}
+			
 			serverID = playerName;
 
 			String battleServer = "main_battle_server";
-			String battleServerLocation = "192.168.56.1:6115";
+			/**
+			 * Location should be provided in host:port format
+			 */
+			String battleServerLocation = args[0];
 			String res = getHelperServer(battleServerLocation, battleServer);
 			if (res.equals("noServers")) {
 				return;
@@ -95,6 +105,15 @@ public class ClientMain {
 		for (int i = 0; i < array.length; i++) {
 			System.out.println("item[" + i + "]: " + array[i]);
 		}
+	}
+	
+	private static String randomString(int len) {
+		final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		Random rnd = new Random();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++)
+			sb.append(AB.charAt(rnd.nextInt(AB.length())));
+		return sb.toString();
 	}
 
 }

@@ -6,7 +6,6 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 
 import common.Enums.Direction;
 import common.IPlayerController;
@@ -28,7 +27,9 @@ public class PlayerController implements IPlayerController {
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
 
-	public PlayerController(String playerID, String host, int port, String battle_helper, String battleServerLocation, String battle_server) {
+	public PlayerController(String playerID, String host, int port,
+			String battle_helper, String battleServerLocation,
+			String battle_server) {
 		// TODO Auto-generated constructor stub
 		this.playerID = playerID;
 		this.port = port;
@@ -36,19 +37,20 @@ public class PlayerController implements IPlayerController {
 		this.battleHelper = battle_helper;
 		this.battleServer = battle_server;
 		this.battleServerLocation = battleServerLocation;
+		this.setRunning(true);
 	}
 
 	public void run() {
 		Direction direction;
 		this.running = true;
-		
+
 		int i = 0;
 		// TODO This is an infinite loop until it receives a message that it
 		// should stop. That's tricky.
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -118,7 +120,7 @@ public class PlayerController implements IPlayerController {
 
 		} catch (NotBoundException | MalformedURLException | RemoteException e) {
 			e.printStackTrace();
-			if(this.resetHelperServer()) {
+			if (this.resetHelperServer()) {
 				this.sendMessage(msg);
 			} else {
 				System.out.println("no server is online");
@@ -145,30 +147,31 @@ public class PlayerController implements IPlayerController {
 			break;
 		}
 	}
-	
+
 	private Message createMessage(String recipient) {
 		Message msg = new Message(recipient);
 		msg.setSender(playerID);
 		msg.setMiddleman(battleHelper);
 		msg.setMiddlemanPort(port);
-		
+
 		return msg;
 	}
-	
-	private boolean resetHelperServer(){
-		boolean reset = false;		
-		String res = ClientMain.getHelperServer(battleServerLocation, battleServer);
-		
+
+	private boolean resetHelperServer() {
+		boolean reset = false;
+		String res = ClientMain.getHelperServer(battleServerLocation,
+				battleServer);
+
 		if (res.equals("noServers")) {
 			this.running = false;
-			return reset;			
+			return reset;
 		}
-		
+
 		String[] newHelper = res.split(":");
 		this.battleHelper = newHelper[0];
 		this.host = newHelper[1];
 		this.port = Integer.parseInt(newHelper[2]);
-		
+
 		try {
 			Registry reg = LocateRegistry.getRegistry(host, port);
 			reg.rebind(this.playerID, this);
@@ -177,7 +180,7 @@ public class PlayerController implements IPlayerController {
 			e.printStackTrace();
 			return reset;
 		}
-		
+
 		String urlServer = new String("rmi://" + host + ":" + port + "/"
 				+ battleHelper);
 
@@ -188,10 +191,10 @@ public class PlayerController implements IPlayerController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		System.out.println("Reset succesfull, server: " + host + ":" + port );
+
+		System.out.println("Reset succesfull, server: " + host + ":" + port);
 		reset = true;
-		
+
 		return reset;
 	}
 

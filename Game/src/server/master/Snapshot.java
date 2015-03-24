@@ -1,7 +1,6 @@
 package server.master;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Snapshot implements Serializable {

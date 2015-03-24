@@ -219,6 +219,13 @@ public class BattleField implements IBattleField {
 			this.removeUnit((Integer) msg.get("x"), (Integer) msg.get("y"));
 			return;
 		}
+		
+		// case MessageRequest.getBattleFieldInfo: {
+				// reply = new Message(from);
+				// reply.setRequest(MessageRequest.getBattleFieldInfo);
+				// reply.put("mapWidth", MAP_WIDTH);
+				// reply.put("mapHeight", MAP_HEIGHT);
+				// }
 
 		}
 
@@ -457,12 +464,12 @@ public class BattleField implements IBattleField {
 
 	@Override
 	public int getMapHeight() throws RemoteException {
-		return this.MAP_HEIGHT;
+		return BattleField.MAP_HEIGHT;
 	}
 
 	@Override
 	public int getMapWidth() throws RemoteException {
-		return this.MAP_WIDTH;
+		return BattleField.MAP_WIDTH;
 	}
 
 	@Override
