@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Random;
 
 import server.helper.IBattleField;
-
 import common.Enums.UnitType;
 import common.IRunner;
 import common.Message;
@@ -44,6 +43,12 @@ public class BattleField implements IBattleField {
 	private static String myAddress;
 	private static HashMap<String, String> helpers;
 
+	private static boolean isBackup;
+
+	private String backupAddress;
+	private boolean unitsChanged;
+	private boolean mapChanged;
+
 	// private String serverLocation;
 
 	/**
@@ -64,26 +69,13 @@ public class BattleField implements IBattleField {
 			messages = new ArrayList<Message>();
 			helpers = new HashMap<String, String>();
 		}
-
-		Runnable myRunnable = new Runnable() {
-
-			public void run() {
-				System.out.println("Runnable running");
-				while (true) {
-					try {
-						Thread.sleep(5000);
-						checkHelpers();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		};
-		Thread thread = new Thread(myRunnable);
-		thread.start();
-
+		
 		System.out.println("Battlefield created");
+		
+		if (!isBackup) {
+			initHelperChecker();
+			initBackupService();
+		}	
 	}
 
 	/**
@@ -95,6 +87,13 @@ public class BattleField implements IBattleField {
 	public static BattleField getBattleField() throws RemoteException {
 		if (battlefield == null)
 			battlefield = new BattleField();
+		return battlefield;
+	}
+
+	public static BattleField createBackupBattleField() throws RemoteException {
+		isBackup = true;
+		battlefield = new BattleField();
+		System.out.println("Backup created");
 		return battlefield;
 	}
 
@@ -219,13 +218,13 @@ public class BattleField implements IBattleField {
 			this.removeUnit((Integer) msg.get("x"), (Integer) msg.get("y"));
 			return;
 		}
-		
+
 		// case MessageRequest.getBattleFieldInfo: {
-				// reply = new Message(from);
-				// reply.setRequest(MessageRequest.getBattleFieldInfo);
-				// reply.put("mapWidth", MAP_WIDTH);
-				// reply.put("mapHeight", MAP_HEIGHT);
-				// }
+		// reply = new Message(from);
+		// reply.setRequest(MessageRequest.getBattleFieldInfo);
+		// reply.put("mapWidth", MAP_WIDTH);
+		// reply.put("mapHeight", MAP_HEIGHT);
+		// }
 
 		}
 
@@ -276,6 +275,7 @@ public class BattleField implements IBattleField {
 
 		map[x][y] = unit;
 		unit.setPosition(x, y);
+		mapChanged = true;
 
 		return true;
 	}
@@ -302,6 +302,8 @@ public class BattleField implements IBattleField {
 			unit.setPosition(x, y);
 		}
 		units.put(id, unit);
+		unitsChanged = true;
+		mapChanged = true;
 		System.out.println("Unit spwaned");
 
 		return true;
@@ -351,6 +353,8 @@ public class BattleField implements IBattleField {
 		map[x][y] = null;
 		unitToRemove.disconnect();
 		units.remove(unitToRemove);
+		unitsChanged = true;
+		mapChanged = true;
 	}
 
 	/**
@@ -482,5 +486,96 @@ public class BattleField implements IBattleField {
 		else
 			return UnitType.undefined;
 
+	}
+
+	@Override
+	public void ping() throws RemoteException {
+
+	}
+
+	@Override
+	public void setBackupAddress(String address) throws RemoteException {
+		backupAddress = address;
+		System.out.println("Backup address set to: " + address);
+	}
+
+	private void sendUpdate() {		
+		if (backupAddress == null) {
+			return;
+		}
+		
+		Snapshot snap = new Snapshot();
+		snap.setLastUnitID(lastUnitID);
+		
+		if (mapChanged)
+			snap.setMap(map);
+		
+		if (unitsChanged)
+			snap.setUnits(units);
+
+		try {
+			IBattleField RMIServer = (IBattleField) Naming.lookup("rmi://"
+					+ backupAddress);
+			boolean updated = RMIServer.updateBackup(snap);
+			if (updated) {
+				unitsChanged = false;
+				mapChanged = false;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void initBackupService() {
+		Runnable myRunnable = new Runnable() {
+
+			public void run() {
+				System.out.println("Backup service running");
+				while (true) {
+					try {
+						Thread.sleep(5000);
+						sendUpdate();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		Thread thread = new Thread(myRunnable);
+		thread.start();
+	}
+
+	@Override
+	public boolean updateBackup(Snapshot snapshot) throws RemoteException {
+		this.lastUnitID = snapshot.getLastUnitID();
+		
+		if (snapshot.getMap() != null) {
+			this.map = snapshot.getMap();
+		}
+		
+		if (snapshot.getUnits() != null){
+			this.units = snapshot.getUnits();
+			System.out.println("units: " + units.size());
+		}		
+		return true;
+	}
+
+	private void initHelperChecker() {
+		Runnable myRunnable = new Runnable() {
+
+			public void run() {
+				System.out.println("Helper checker running");
+				while (true) {
+					try {
+						Thread.sleep(5000);
+						checkHelpers();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		Thread thread = new Thread(myRunnable);
+		thread.start();
 	}
 }

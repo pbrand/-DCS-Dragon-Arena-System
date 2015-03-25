@@ -30,7 +30,6 @@ public class PlayerController implements IPlayerController {
 	public PlayerController(String playerID, String host, int port,
 			String battle_helper, String battleServerLocation,
 			String battle_server) {
-		// TODO Auto-generated constructor stub
 		this.playerID = playerID;
 		this.port = port;
 		this.host = host;
@@ -50,9 +49,8 @@ public class PlayerController implements IPlayerController {
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
 			try {
-				Thread.sleep(500);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			if (i > 4) {
@@ -175,8 +173,7 @@ public class PlayerController implements IPlayerController {
 		try {
 			Registry reg = LocateRegistry.getRegistry(host, port);
 			reg.rebind(this.playerID, this);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
+		} catch (RemoteException e)  {
 			e.printStackTrace();
 			return reset;
 		}

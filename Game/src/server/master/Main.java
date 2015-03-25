@@ -1,12 +1,19 @@
 package server.master;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+import javax.management.remote.rmi.RMIServer;
+
 import server.helper.IBattleField;
-import server.master.BattleField;
 
 public class Main {
 	@SuppressWarnings("unused")
@@ -20,35 +27,85 @@ public class Main {
 		 * if (System.getSecurityManager() == null) {
 		 * System.setSecurityManager(new SecurityManager()); }
 		 */
-		int port = 6115;
+		int port = 0;
+
+		if (args.length > 0) {
+			port = Integer.parseInt(args[0]);
+		}
+
 		IBattleField stub = null;
 		try {
 
-			BattleField battlefield = BattleField.getBattleField();
+			BattleField battlefield = null;
+			
+			if (args.length > 1 && args[1].equals("backup")) {
+				battlefield = BattleField.createBackupBattleField();
+			} else {
+				battlefield = BattleField.getBattleField();
+			}
+			
 			bfv = new BattleFieldViewer(battlefield);
 
-			stub = (IBattleField) UnicastRemoteObject
-					.exportObject(battlefield, 0);
+			stub = (IBattleField) UnicastRemoteObject.exportObject(battlefield,
+					0);
 
 			Registry reg = LocateRegistry.createRegistry(port);
 
 			reg.rebind(serverID, stub);
-			String address = reg.toString().split("endpoint:\\[")[1].split("\\]")[0];
+			String address = reg.toString().split("endpoint:\\[")[1]
+					.split("\\]")[0];
 			battlefield.setMyAddress(address);
-			
+
 			System.out.println("Battlefield running, server: " + serverID
 					+ ", reg: " + reg.toString());
-			
-			
-		} catch (RemoteException e) {			
+
+			Runnable myRunnable = new Runnable() {
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						System.in));
+
+				public void run() {
+					System.out.println("Commander Running");
+					while (true) {
+
+						String line = "";
+
+						try {
+							line = in.readLine();
+							String[] res = line.split(" ");
+							if (res[0].equals("setbackup")) {
+								setBackup(address, res[1]);								
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+
+						// do something
+
+						// in.close();
+					}
+				}
+			};
+			Thread thread = new Thread(myRunnable);
+			thread.start();
+
+		} catch (RemoteException e) {
 			Registry reg = LocateRegistry.getRegistry(port);
-			//serverID = "battle_server" + "_" + reg.list().length;
+			// serverID = "battle_server" + "_" + reg.list().length;
 			reg.rebind(serverID, stub);
-			//e.printStackTrace();
+			// e.printStackTrace();
 			System.out.println("Number of servers: " + reg.list().length);
 			System.out.println("Battlefield running, server: " + serverID
 					+ ", reg: " + reg.toString());
 		}
+	}
+	
+	private static void setBackup(String mainServer, String backup) {
+		try {
+			IBattleField RMIServer = (IBattleField) Naming.lookup("rmi://" +  mainServer + "/" + serverID);
+			RMIServer.setBackupAddress(backup + "/" + serverID);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace(); 
+		} 
 	}
 
 }

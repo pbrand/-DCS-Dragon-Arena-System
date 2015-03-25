@@ -19,11 +19,6 @@ public class ClientMain {
 
 	public static void main(String[] args) throws RemoteException {
 
-		// Bind to RMI registry
-		/*
-		 * if (System.getSecurityManager() == null) {
-		 * System.setSecurityManager(new SecurityManager()); }
-		 */
 		IPlayerController player = null;
 		IPlayerController stub = null;
 		try {
@@ -43,7 +38,7 @@ public class ClientMain {
 			 */
 			String battleServerLocation = args[0];
 			String res = getHelperServer(battleServerLocation, battleServer);
-			if (res.equals("noServers")) {
+			if (res == null || res.equals("noServers")) {
 				return;
 			}
 
@@ -70,8 +65,6 @@ public class ClientMain {
 			player.spawnPlayer();
 
 		} catch (RemoteException e) {
-			// Registry reg = LocateRegistry.createRegistry(0);
-			// .rebind(serverID, player);
 			e.printStackTrace();
 		}
 	}
@@ -84,7 +77,6 @@ public class ClientMain {
 		String urlServer = new String("rmi://" + battleServerLocation + "/"
 				+ battleServer);
 
-		// Bind to RMIServer
 		try {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			helper = RMIServer.getRandomHelper();
@@ -96,6 +88,7 @@ public class ClientMain {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println("Not able to connect to main server");
 		}
 
 		return helper;

@@ -19,6 +19,11 @@ public class HelperMain {
 		String battleServerLocation = args[0];
 		String battleServer = "main_battle_server";
 		String serverID = "helper_battle_server_" + randomString(10);
+		
+		if (!isServerOnline(battleServerLocation, battleServer)) {
+			System.out.println("The main server is not available");
+			return;
+		}
 
 		// Bind to RMI registry
 		// if (System.getSecurityManager() == null) {
@@ -42,6 +47,22 @@ public class HelperMain {
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static boolean isServerOnline(String serverLocation,
+			String serverNode) {
+		IBattleField RMIServer = null;
+		String urlServer = new String("rmi://" + serverLocation + "/"
+				+ serverNode);
+
+		try {
+			RMIServer = (IBattleField) Naming.lookup(urlServer);
+			RMIServer.ping();
+			return true;
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
+		return false;
 	}
 
 	private static void bindWithMainServer(String battleServerLocation,
