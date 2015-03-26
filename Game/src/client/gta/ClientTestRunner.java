@@ -31,7 +31,7 @@ public class ClientTestRunner {
 		}
 	}
 
-	private static void clientRunner(String[] arguments) {
+	private static void clientRunner(final String[] arguments) {
 		Runnable myRunnable = new Runnable() {
 			public void run() {
 				try {

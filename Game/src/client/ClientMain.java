@@ -75,7 +75,7 @@ public class ClientMain {
 		}
 	}
 
-	private static void playerCommander(String player) {
+	private static void playerCommander(final String player) {
 		Runnable myRunnable = new Runnable() {
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 					System.in));

@@ -1,4 +1,4 @@
-package server.master;
+	package server.master;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -68,7 +68,7 @@ public class Main {
 		}
 	}
 	
-	private static void mainCommander(String address) {
+	private static void mainCommander(final String address) {
 		Runnable myRunnable = new Runnable() {
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 					System.in));
