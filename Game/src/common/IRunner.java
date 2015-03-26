@@ -16,5 +16,7 @@ public interface IRunner extends Remote {
 	public void registerWithServer(String player, String address) throws RemoteException;
 	
 	public boolean setBackupServerLocation(String serverLocation) throws RemoteException;
+	
+	public void setMyAddress(String address) throws RemoteException;
 
 }

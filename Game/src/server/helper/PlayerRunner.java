@@ -12,11 +12,13 @@ import common.Enums.Direction;
 import common.Enums.UnitType;
 import common.IPlayerController;
 import common.IRunner;
+import common.Log;
 import common.Message;
 import common.MessageRequest;
 
 public class PlayerRunner implements IRunner {
 
+	private String myAddress;
 	private String battleServerLocation;
 	private String battleServer;
 	private String backupBattleServerLocation;
@@ -38,13 +40,11 @@ public class PlayerRunner implements IRunner {
 		String urlServer = new String("rmi://" + battleServerLocation + "/"
 				+ battleServer);
 
-		// Bind to RMIServer
 		try {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
-			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
 
-		} catch (MalformedURLException | RemoteException | NotBoundException e) {			
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			if (changeBackupToMainServer()) {
 				sendMessageToServer(msg);
 			} else {
@@ -73,7 +73,7 @@ public class PlayerRunner implements IRunner {
 
 	@Override
 	public void receiveMessage(Message msg) {
-		System.out.println("Received: " + msg);
+		Log.log(myAddress, "Received: " + msg);
 		switch (msg.getRequest()) {
 		case MessageRequest.spawnUnit:
 			try {
@@ -117,11 +117,11 @@ public class PlayerRunner implements IRunner {
 			this.battleFieldMapWidth = RMIServer.getMapWidth();
 			this.battleFieldMapHeight = RMIServer.getMapHeight();
 
-		} catch (MalformedURLException | RemoteException | NotBoundException e) {			
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			if (changeBackupToMainServer()) {
 				getBattleFieldInfo();
 			} else {
-				e.printStackTrace();			
+				e.printStackTrace();
 			}
 		}
 	}
@@ -136,7 +136,7 @@ public class PlayerRunner implements IRunner {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			pos = RMIServer.getPosition(id);
-			System.out.println("Position of player: " + pos[0] + " " + pos[1]);
+			Log.log(myAddress, "Position of player: " + pos[0] + " " + pos[1]);
 			int targetX = pos[0];
 			int targetY = pos[1];
 			switch (direction) {
@@ -192,7 +192,7 @@ public class PlayerRunner implements IRunner {
 				// this.dealDamage(targetX, targetY, getAttackPoints());
 				break;
 			}
-		} catch (MalformedURLException | RemoteException | NotBoundException e) {			
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			if (changeBackupToMainServer()) {
 				moveUnit(id, direction);
 			} else {
@@ -203,7 +203,7 @@ public class PlayerRunner implements IRunner {
 
 	@Override
 	public void ping() throws RemoteException {
-		// System.out.println("Still alive");
+		// Log.log(myAddress, "Still alive");
 	}
 
 	@Override
@@ -218,7 +218,7 @@ public class PlayerRunner implements IRunner {
 			this.battleServerLocation = new String(
 					this.backupBattleServerLocation);
 			this.backupBattleServerLocation = null;
-			System.out.println("Battle is now at: " + battleServerLocation);
+			Log.log(myAddress, "Battle is now at: " + battleServerLocation);
 			return true;
 		}
 
@@ -244,7 +244,11 @@ public class PlayerRunner implements IRunner {
 	public boolean setBackupServerLocation(String serverLocation)
 			throws RemoteException {
 		this.backupBattleServerLocation = serverLocation;
-		System.out.println("Backup server updated with: " + serverLocation);
+		Log.log(myAddress, "Backup server updated with: " + serverLocation);
 		return true;
+	}
+
+	public void setMyAddress(String myAddress) {
+		this.myAddress = myAddress;
 	}
 }

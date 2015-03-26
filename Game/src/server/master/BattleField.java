@@ -16,6 +16,7 @@ import server.helper.IBattleField;
 
 import common.Enums.UnitType;
 import common.IRunner;
+import common.Log;
 import common.Message;
 import common.MessageRequest;
 
@@ -44,12 +45,14 @@ public class BattleField implements IBattleField {
 	private static String myAddress;
 	private static HashMap<String, String> helpers;
 
-	private static boolean isBackup;
+	private boolean isBackup;
 
 	private String backupAddress;
 	private boolean unitsChanged;
 	private boolean mapChanged;
 	private boolean helpersChanged;
+	
+	//private static final Logger logger = LogManager.getLogger(BattleField.class);
 
 	// private String serverLocation;
 
@@ -62,17 +65,24 @@ public class BattleField implements IBattleField {
 	 *            of the battlefield
 	 * @throws RemoteException
 	 */
+	private BattleField(boolean isBackup) throws RemoteException {
+				
+	}
+	
 	private BattleField() throws RemoteException {
-		// Socket local = new LocalSocket();
-
+		this(false);
+	}
+	
+	public void initiateBattleService(String address) {
+		
 		synchronized (this) {
 			map = new Unit[MAP_WIDTH][MAP_HEIGHT];
 			units = new HashMap<String, Unit>();
 			helpers = new HashMap<String, String>();
 		}
-
-		System.out.println("Battlefield created");
-
+		
+		setMyAddress(address);
+		log("Battlefield created");
 		if (!isBackup) {
 			initHelperChecker();
 			initBackupService();
@@ -92,9 +102,8 @@ public class BattleField implements IBattleField {
 	}
 
 	public static BattleField createBackupBattleField() throws RemoteException {
-		isBackup = true;
-		battlefield = new BattleField();
-		System.out.println("Backup created");
+		battlefield = new BattleField(true);
+		battlefield.log("Backup created");
 		return battlefield;
 	}
 
@@ -114,7 +123,7 @@ public class BattleField implements IBattleField {
 
 		// Bind to RMIServer
 		try {
-			System.out.println(urlServer);
+			log(urlServer);
 			RMIServer = (IRunner) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
@@ -131,14 +140,14 @@ public class BattleField implements IBattleField {
 		String from = msg.getSender();
 		String request = msg.getRequest();
 
-		System.out.println("Message received from: " + msg.getSender()
+		log("Message received from: " + msg.getSender()
 				+ ", request: " + request);
 
 		Message reply = null;
 		Unit unit;
 		switch (request) {
 		case MessageRequest.spawnUnit: {
-			System.out.println("Spawning: " + msg.getSender());
+			log("Spawning: " + msg.getSender());
 			Unit player = new Player();
 			int[] pos = getAvailablePosition();
 			boolean spawned = this.spawnUnit(from, player, pos[0], pos[1]);
@@ -246,7 +255,7 @@ public class BattleField implements IBattleField {
 		while (running) {
 			x = (int) random.nextInt(MAP_WIDTH - 1);
 			y = (int) random.nextInt(MAP_HEIGHT - 1);
-			System.out.println("x: " + x + " ,y: " + y);
+			log("x: " + x + " ,y: " + y);
 			if (getUnit(x, y) == null) {
 				running = false;
 			}
@@ -254,7 +263,7 @@ public class BattleField implements IBattleField {
 		pos = new int[2];
 		pos[0] = x;
 		pos[1] = y;
-		System.out.println("Position: " + pos);
+		log("Position: " + pos);
 		return pos;
 	}
 
@@ -305,7 +314,7 @@ public class BattleField implements IBattleField {
 		units.put(id, unit);
 		unitsChanged = true;
 		mapChanged = true;
-		System.out.println("Unit spwaned");
+		log("Unit spwaned");
 
 		return true;
 	}
@@ -383,11 +392,7 @@ public class BattleField implements IBattleField {
 	public synchronized int getNewUnitID() {
 		return ++lastUnitID;
 	}
-
-	public static String getMyAddress() {
-		return myAddress;
-	}
-
+	
 	public void setMyAddress(String myAddress) {
 		BattleField.myAddress = myAddress;
 	}
@@ -445,7 +450,7 @@ public class BattleField implements IBattleField {
 			printHelpers();
 
 			if (helpers.size() == 0) {
-				System.out.println("All helpers are disconnected");
+				log("All helpers are disconnected");
 			}
 
 			return false;
@@ -458,7 +463,7 @@ public class BattleField implements IBattleField {
 		while (iterator.hasNext()) {
 			String key = iterator.next().toString();
 			String value = helpers.get(key).toString();
-			System.out.println(key + ": " + value);
+			log(key + ": " + value);
 		}
 		System.out.println();
 	}
@@ -503,7 +508,7 @@ public class BattleField implements IBattleField {
 	public void setBackupAddress(String address) throws RemoteException {
 		backupAddress = address;
 		updateBackupServerForHelpers();
-		System.out.println("Backup address set to: " + address);
+		log("Backup address set to: " + address);
 	}
 
 	private void updateBackupServerForHelpers() {
@@ -549,7 +554,7 @@ public class BattleField implements IBattleField {
 		try {
 			RMIServer = (IBattleField) Naming.lookup("rmi://" + backupAddress);
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
-			System.out.println("Backup server is not online");
+			log("Backup server is not online");
 			backupAddress = null;
 			return;
 		}
@@ -571,7 +576,7 @@ public class BattleField implements IBattleField {
 		Runnable myRunnable = new Runnable() {
 
 			public void run() {
-				System.out.println("Backup service running");
+				log("Backup service running");
 				while (!isBackup) {
 					try {
 						Thread.sleep(5000);
@@ -582,7 +587,7 @@ public class BattleField implements IBattleField {
 						e.printStackTrace();
 					}
 				}
-				System.out.println("Backup service stopped");
+				log("Backup service stopped");
 			}
 		};
 		Thread thread = new Thread(myRunnable);
@@ -599,12 +604,12 @@ public class BattleField implements IBattleField {
 
 		if (snapshot.getUnits() != null) {
 			this.units = snapshot.getUnits();
-			System.out.println("units: " + units.size());
+			log("units: " + units.size());
 		}
 		
 		if (snapshot.getHelpers() != null) {
 			helpers = snapshot.getHelpers();
-			System.out.println("Helpers updated: " + helpers.size());
+			log("Helpers updated: " + helpers.size());
 		}
  		
 		return true;
@@ -614,7 +619,7 @@ public class BattleField implements IBattleField {
 		Runnable myRunnable = new Runnable() {
 
 			public void run() {
-				System.out.println("Helper checker running");
+				log("Helper checker running");
 				while (!isBackup) {
 					try {
 						Thread.sleep(5000);
@@ -623,7 +628,7 @@ public class BattleField implements IBattleField {
 						e.printStackTrace();
 					}
 				}
-				System.out.println("Helper checker stopped");
+				log("Helper checker stopped");
 			}
 		};
 		Thread thread = new Thread(myRunnable);
@@ -633,9 +638,21 @@ public class BattleField implements IBattleField {
 	@Override
 	public boolean promoteBackupToMain() throws RemoteException {
 		isBackup = false;
-		System.out.println("Backup server promoted to main server");
+		log("Backup server promoted to main server");
 		initHelperChecker();
 		initBackupService();
 		return true;
+	}
+
+	public boolean isBackup() {
+		return isBackup;
+	}
+
+	public void setBackup(boolean isBackup) {
+		this.isBackup = isBackup;
+	}
+	
+	private void log(String text) {
+		Log.log(myAddress, text);
 	}
 }

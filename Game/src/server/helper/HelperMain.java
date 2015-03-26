@@ -5,9 +5,10 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Random;
 
+import common.Common;
 import common.IRunner;
+import common.Log;
 
 public class HelperMain {
 
@@ -18,10 +19,10 @@ public class HelperMain {
 		 */
 		String battleServerLocation = args[0];
 		String battleServer = "main_battle_server";
-		String serverID = "helper_battle_server_" + randomString(10);
+		String serverID = "helper_battle_server_" + Common.randomString(10);
 		
 		if (!isServerOnline(battleServerLocation, battleServer)) {
-			System.out.println("The main server is not available");
+			Log.log(serverID, "The main server is not available");
 			return;
 		}
 
@@ -39,7 +40,8 @@ public class HelperMain {
 			reg.rebind(serverID, stub);
 			String address = reg.toString().split("endpoint:\\[")[1]
 					.split("\\]")[0];
-			System.out.println("Battlefield helper running, server: "
+			runner.setMyAddress(address  + "/" + serverID);
+			Log.log(address  + "/" + serverID, "Battlefield helper running, server: "
 					+ serverID + ", reg: " + reg.toString());
 			bindWithMainServer(battleServerLocation, battleServer, serverID,
 					address);
@@ -78,15 +80,6 @@ public class HelperMain {
 			e.printStackTrace();
 		}
 
-	}
-
-	private static String randomString(int len) {
-		final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		Random rnd = new Random();
-		StringBuilder sb = new StringBuilder(len);
-		for (int i = 0; i < len; i++)
-			sb.append(AB.charAt(rnd.nextInt(AB.length())));
-		return sb.toString();
-	}
+	}	
 
 }

@@ -14,4 +14,5 @@ public interface IPlayerController extends Remote {
 	public void spawnPlayer() throws RemoteException;
 	
 	public void movePlayer(Direction direction) throws RemoteException;
+	
 }

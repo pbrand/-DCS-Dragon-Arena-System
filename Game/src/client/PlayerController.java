@@ -68,14 +68,14 @@ public class PlayerController implements IPlayerController {
 			// there are no units present
 			direction = Direction.values()[(int) (Direction.values().length * Math
 					.random())];
-			System.out.println("Move: " + direction.toString());
+			log("Move: " + direction.toString());
 			movePlayer(direction);
 		}
 	}
 
 	public void spawnPlayer() {
 		Message spawn = createSpawnMessage();
-		System.out.println(spawn);
+		log(spawn.toString());
 		sendMessage(spawn);
 	}
 
@@ -120,7 +120,7 @@ public class PlayerController implements IPlayerController {
 			if (this.resetHelperServer()) {
 				this.sendMessage(msg);
 			} else {
-				System.out.println("no server is online");
+				log("no server is online");
 				this.running = false;
 			}
 		} catch (Exception e) {
@@ -131,8 +131,8 @@ public class PlayerController implements IPlayerController {
 	@Override
 	public void receiveMessage(Message msg) {
 		// TODO Auto-generated method stub
-		System.out.println("PlayerController: received message");
-		System.out.println("PlayerController: msg: " + msg.toString());
+		log("PlayerController: received message");
+		log("PlayerController: msg: " + msg.toString());
 		// Update somethings
 		switch (msg.getRequest()) {
 		case MessageRequest.spawnAck:
@@ -189,10 +189,14 @@ public class PlayerController implements IPlayerController {
 			e.printStackTrace();
 		}
 
-		System.out.println("Reset succesfull, server: " + host + ":" + port);
+		log("Reset succesfull, server: " + host + ":" + port);
 		reset = true;
 
 		return reset;
+	}
+	
+	private void log(String text) {
+		common.Log.log(host + ":" + port + "/" + playerID, text);
 	}
 
 }

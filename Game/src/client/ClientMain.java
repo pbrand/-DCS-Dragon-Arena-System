@@ -9,15 +9,14 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Random;
 
 import server.helper.IBattleField;
-import common.IPlayerController;
+
+import common.Common;
 import common.Enums.Direction;
+import common.IPlayerController;
 
 public class ClientMain {
-
-	public static String serverID;
 
 	private static String helper_host;
 	private static int helper_port;
@@ -30,12 +29,12 @@ public class ClientMain {
 			String playerName = null;
 
 			if (args.length < 2) {
-				playerName = "p_" + randomString(10);
+				playerName = "p_" + Common.randomString(10);
 			} else {
 				playerName = args[1];
 			}
 
-			serverID = playerName;
+			String serverID = playerName;
 
 			String battleServer = "main_battle_server";
 			/**
@@ -53,7 +52,7 @@ public class ClientMain {
 			helper_host = helper[1];
 			helper_port = Integer.parseInt(helper[2]);
 
-			System.out.println("host: " + helper_host + ":" + helper_port);
+			log(playerName, "host: " + helper_host + ":" + helper_port);
 
 			player = new PlayerController(playerName, helper_host, helper_port,
 					battle_helper, battleServerLocation, battleServer);
@@ -63,10 +62,10 @@ public class ClientMain {
 
 			Registry reg = LocateRegistry.getRegistry(helper_host, helper_port);
 
-			reg.rebind(serverID, stub);
-			System.out.println("PlayerController running, server: " + serverID
+			reg.rebind(playerName, stub);
+			log(playerName, "PlayerController running, server: " + serverID
 					+ ", reg: " + reg.toString());
-			printRegistry(reg.list());
+			//printRegistry(reg.list());
 			player.spawnPlayer();
 			
 			playerCommander(playerName);
@@ -82,7 +81,7 @@ public class ClientMain {
 					System.in));
 
 			public void run() {
-				System.out.println("Player commander Running");
+				log(player, "Player commander Running");
 				while (true) {
 
 					String line = "";
@@ -133,29 +132,25 @@ public class ClientMain {
 				helper = RMIServer.getRandomHelper();
 			}
 			if (helper.equals("noServers")) {
-				System.out.println("No server online to connect to");
+				log("", "No server online to connect to");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("Not able to connect to main server");
+			log("", "Not able to connect to main server");
 		}
 
 		return helper;
 	}
 
+	@SuppressWarnings("unused")
 	private static void printRegistry(String[] array) {
 		for (int i = 0; i < array.length; i++) {
-			System.out.println("item[" + i + "]: " + array[i]);
+			log("","item[" + i + "]: " + array[i]);
 		}
 	}
-
-	private static String randomString(int len) {
-		final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		Random rnd = new Random();
-		StringBuilder sb = new StringBuilder(len);
-		for (int i = 0; i < len; i++)
-			sb.append(AB.charAt(rnd.nextInt(AB.length())));
-		return sb.toString();
+		
+	private static void log(String serverID, String text) {
+		common.Log.log(serverID, text);
 	}
 
 }

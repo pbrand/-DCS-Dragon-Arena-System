@@ -39,10 +39,10 @@ public class Main {
 				battlefield = BattleField.createBackupBattleField();
 			} else {
 				battlefield = BattleField.getBattleField();
+				String[] args2 = {"6116", "backup"};
+				//Main.main(args2);
 			}
 			
-			bfv = new BattleFieldViewer(battlefield);
-
 			stub = (IBattleField) UnicastRemoteObject.exportObject(battlefield,
 					0);
 
@@ -51,11 +51,12 @@ public class Main {
 			reg.rebind(serverID, stub);
 			String address = reg.toString().split("endpoint:\\[")[1]
 					.split("\\]")[0];
-			battlefield.setMyAddress(address);
+			battlefield.initiateBattleService(address + "/" + serverID);
+			bfv = new BattleFieldViewer(battlefield);
 
 			System.out.println("Battlefield running, server: " + serverID
 					+ ", reg: " + reg.toString());
-
+			
 			mainCommander(address);
 
 		} catch (RemoteException e) {
