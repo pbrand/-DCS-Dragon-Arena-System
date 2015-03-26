@@ -1,7 +1,6 @@
 package server.master;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -10,8 +9,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-
-import javax.management.remote.rmi.RMIServer;
 
 import server.helper.IBattleField;
 
@@ -59,44 +56,42 @@ public class Main {
 			System.out.println("Battlefield running, server: " + serverID
 					+ ", reg: " + reg.toString());
 
-			Runnable myRunnable = new Runnable() {
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						System.in));
-
-				public void run() {
-					System.out.println("Commander Running");
-					while (true) {
-
-						String line = "";
-
-						try {
-							line = in.readLine();
-							String[] res = line.split(" ");
-							if (res[0].equals("setbackup")) {
-								setBackup(address, res[1]);								
-							}
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-
-						// do something
-
-						// in.close();
-					}
-				}
-			};
-			Thread thread = new Thread(myRunnable);
-			thread.start();
+			mainCommander(address);
 
 		} catch (RemoteException e) {
 			Registry reg = LocateRegistry.getRegistry(port);
-			// serverID = "battle_server" + "_" + reg.list().length;
 			reg.rebind(serverID, stub);
-			// e.printStackTrace();
 			System.out.println("Number of servers: " + reg.list().length);
 			System.out.println("Battlefield running, server: " + serverID
 					+ ", reg: " + reg.toString());
 		}
+	}
+	
+	private static void mainCommander(String address) {
+		Runnable myRunnable = new Runnable() {
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+					System.in));
+
+			public void run() {
+				System.out.println("Commander Running");
+				while (true) {
+					String line = "";
+					try {
+						line = in.readLine();
+						String[] res = line.split(" ");
+						if (res.length > 0 && res[0].equals("setbackup")) {
+							setBackup(address, res[1]);								
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}					
+				}
+				// do something
+				// in.close();
+			}
+		};
+		Thread thread = new Thread(myRunnable);
+		thread.start();
 	}
 	
 	private static void setBackup(String mainServer, String backup) {

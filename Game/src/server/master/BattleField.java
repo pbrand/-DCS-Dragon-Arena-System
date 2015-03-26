@@ -1,6 +1,8 @@
 package server.master;
 
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Random;
 
 import server.helper.IBattleField;
+
 import common.Enums.UnitType;
 import common.IRunner;
 import common.Message;
@@ -38,8 +41,6 @@ public class BattleField implements IBattleField {
 	public final static int MAP_HEIGHT = 25;
 	private HashMap<String, Unit> units;
 
-	private ArrayList<Message> messages;
-
 	private static String myAddress;
 	private static HashMap<String, String> helpers;
 
@@ -48,6 +49,7 @@ public class BattleField implements IBattleField {
 	private String backupAddress;
 	private boolean unitsChanged;
 	private boolean mapChanged;
+	private boolean helpersChanged;
 
 	// private String serverLocation;
 
@@ -66,16 +68,15 @@ public class BattleField implements IBattleField {
 		synchronized (this) {
 			map = new Unit[MAP_WIDTH][MAP_HEIGHT];
 			units = new HashMap<String, Unit>();
-			messages = new ArrayList<Message>();
 			helpers = new HashMap<String, String>();
 		}
-		
+
 		System.out.println("Battlefield created");
-		
+
 		if (!isBackup) {
 			initHelperChecker();
 			initBackupService();
-		}	
+		}
 	}
 
 	/**
@@ -398,7 +399,11 @@ public class BattleField implements IBattleField {
 	@Override
 	public void putHelper(String key, String value) {
 		BattleField.helpers.put(key, value);
-		printHeplers();
+		helpersChanged = true;
+		printHelpers();
+		if (this.backupAddress != null) {
+			updateBackupServerForHelper(key, this.backupAddress.split("/")[0]);
+		}
 	}
 
 	public String getRandomHelper() {
@@ -436,7 +441,8 @@ public class BattleField implements IBattleField {
 		} catch (Exception e) {
 			// e.printStackTrace();
 			helpers.remove(helper);
-			printHeplers();
+			helpersChanged = true;
+			printHelpers();
 
 			if (helpers.size() == 0) {
 				System.out.println("All helpers are disconnected");
@@ -446,7 +452,7 @@ public class BattleField implements IBattleField {
 		}
 	}
 
-	private void printHeplers() {
+	private void printHelpers() {
 		Iterator<String> iterator = helpers.keySet().iterator();
 		System.out.println();
 		while (iterator.hasNext()) {
@@ -496,34 +502,69 @@ public class BattleField implements IBattleField {
 	@Override
 	public void setBackupAddress(String address) throws RemoteException {
 		backupAddress = address;
+		updateBackupServerForHelpers();
 		System.out.println("Backup address set to: " + address);
 	}
 
-	private void sendUpdate() {		
+	private void updateBackupServerForHelpers() {
+		String backupAddress = this.backupAddress.split("/")[0];
+
+		Iterator<String> iterator = helpers.keySet().iterator();
+
+		while (iterator.hasNext()) {
+			updateBackupServerForHelper(iterator.next(), backupAddress);
+		}
+	}
+
+	private void updateBackupServerForHelper(String helperServer,
+			String backupAddress) {
+		try {
+			IRunner RMIServer = (IRunner) Naming.lookup("rmi://"
+					+ helpers.get(helperServer) + "/" + helperServer);
+			RMIServer.setBackupServerLocation(backupAddress);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void sendUpdate() {
 		if (backupAddress == null) {
 			return;
 		}
-		
+
 		Snapshot snap = new Snapshot();
 		snap.setLastUnitID(lastUnitID);
-		
+
 		if (mapChanged)
 			snap.setMap(map);
-		
+
 		if (unitsChanged)
 			snap.setUnits(units);
+		
+		if (helpersChanged) {
+			snap.setHelpers(helpers);
+		}
 
+		IBattleField RMIServer = null;
 		try {
-			IBattleField RMIServer = (IBattleField) Naming.lookup("rmi://"
-					+ backupAddress);
+			RMIServer = (IBattleField) Naming.lookup("rmi://" + backupAddress);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			System.out.println("Backup server is not online");
+			backupAddress = null;
+			return;
+		}
+		
+		try {
 			boolean updated = RMIServer.updateBackup(snap);
 			if (updated) {
 				unitsChanged = false;
 				mapChanged = false;
+				helpersChanged = false;
 			}
-		} catch (Exception e) {
+		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
+
 	}
 
 	private void initBackupService() {
@@ -531,14 +572,17 @@ public class BattleField implements IBattleField {
 
 			public void run() {
 				System.out.println("Backup service running");
-				while (true) {
+				while (!isBackup) {
 					try {
 						Thread.sleep(5000);
-						sendUpdate();
+						if (backupAddress != null) {
+							sendUpdate();
+						}
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
+				System.out.println("Backup service stopped");
 			}
 		};
 		Thread thread = new Thread(myRunnable);
@@ -548,15 +592,21 @@ public class BattleField implements IBattleField {
 	@Override
 	public boolean updateBackup(Snapshot snapshot) throws RemoteException {
 		this.lastUnitID = snapshot.getLastUnitID();
-		
+
 		if (snapshot.getMap() != null) {
 			this.map = snapshot.getMap();
 		}
-		
-		if (snapshot.getUnits() != null){
+
+		if (snapshot.getUnits() != null) {
 			this.units = snapshot.getUnits();
 			System.out.println("units: " + units.size());
-		}		
+		}
+		
+		if (snapshot.getHelpers() != null) {
+			helpers = snapshot.getHelpers();
+			System.out.println("Helpers updated: " + helpers.size());
+		}
+ 		
 		return true;
 	}
 
@@ -565,7 +615,7 @@ public class BattleField implements IBattleField {
 
 			public void run() {
 				System.out.println("Helper checker running");
-				while (true) {
+				while (!isBackup) {
 					try {
 						Thread.sleep(5000);
 						checkHelpers();
@@ -573,9 +623,19 @@ public class BattleField implements IBattleField {
 						e.printStackTrace();
 					}
 				}
+				System.out.println("Helper checker stopped");
 			}
 		};
 		Thread thread = new Thread(myRunnable);
 		thread.start();
+	}
+
+	@Override
+	public boolean promoteBackupToMain() throws RemoteException {
+		isBackup = false;
+		System.out.println("Backup server promoted to main server");
+		initHelperChecker();
+		initBackupService();
+		return true;
 	}
 }

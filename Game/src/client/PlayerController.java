@@ -36,12 +36,11 @@ public class PlayerController implements IPlayerController {
 		this.battleHelper = battle_helper;
 		this.battleServer = battle_server;
 		this.battleServerLocation = battleServerLocation;
-		this.setRunning(true);
 	}
 
 	public void run() {
 		Direction direction;
-		this.running = true;
+		this.setRunning(true);
 
 		int i = 0;
 		// TODO This is an infinite loop until it receives a message that it
@@ -49,7 +48,7 @@ public class PlayerController implements IPlayerController {
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -122,6 +121,7 @@ public class PlayerController implements IPlayerController {
 				this.sendMessage(msg);
 			} else {
 				System.out.println("no server is online");
+				this.running = false;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -136,7 +136,7 @@ public class PlayerController implements IPlayerController {
 		// Update somethings
 		switch (msg.getRequest()) {
 		case MessageRequest.spawnAck:
-			if ((boolean) msg.get("spawned")) {
+			if ((boolean) msg.get("spawned") && !running) {
 				this.run();
 			} else {
 

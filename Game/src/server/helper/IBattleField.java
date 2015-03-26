@@ -35,5 +35,7 @@ public interface IBattleField extends Remote {
 	public void setBackupAddress(String address) throws RemoteException;
 	
 	public boolean updateBackup(Snapshot snapshot) throws RemoteException;
+	
+	public boolean promoteBackupToMain() throws RemoteException;
 
 }

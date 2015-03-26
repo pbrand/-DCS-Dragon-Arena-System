@@ -1,6 +1,8 @@
 package server.helper;
 
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
@@ -17,6 +19,7 @@ public class PlayerRunner implements IRunner {
 
 	private String battleServerLocation;
 	private String battleServer;
+	private String backupBattleServerLocation;
 	private HashMap<String, String> clients;
 	private int battleFieldMapHeight = 0;
 	private int battleFieldMapWidth = 0;
@@ -41,8 +44,12 @@ public class PlayerRunner implements IRunner {
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {			
+			if (changeBackupToMainServer()) {
+				sendMessageToServer(msg);
+			} else {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -110,8 +117,12 @@ public class PlayerRunner implements IRunner {
 			this.battleFieldMapWidth = RMIServer.getMapWidth();
 			this.battleFieldMapHeight = RMIServer.getMapHeight();
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {			
+			if (changeBackupToMainServer()) {
+				getBattleFieldInfo();
+			} else {
+				e.printStackTrace();			
+			}
 		}
 	}
 
@@ -181,8 +192,12 @@ public class PlayerRunner implements IRunner {
 				// this.dealDamage(targetX, targetY, getAttackPoints());
 				break;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {			
+			if (changeBackupToMainServer()) {
+				moveUnit(id, direction);
+			} else {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -196,5 +211,40 @@ public class PlayerRunner implements IRunner {
 			throws RemoteException {
 		this.clients.put(player, address);
 
+	}
+
+	private synchronized boolean changeBackupToMainServer() {
+		if (notifyBackupToBecomeMain()) {
+			this.battleServerLocation = new String(
+					this.backupBattleServerLocation);
+			this.backupBattleServerLocation = null;
+			System.out.println("Battle is now at: " + battleServerLocation);
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean notifyBackupToBecomeMain() {
+		if (backupBattleServerLocation == null) {
+			return false;
+		}
+		try {
+			IBattleField RMIServer = (IBattleField) Naming.lookup("rmi://"
+					+ backupBattleServerLocation + "/" + battleServer);
+			RMIServer.promoteBackupToMain();
+			return true;
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	@Override
+	public boolean setBackupServerLocation(String serverLocation)
+			throws RemoteException {
+		this.backupBattleServerLocation = serverLocation;
+		System.out.println("Backup server updated with: " + serverLocation);
+		return true;
 	}
 }

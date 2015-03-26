@@ -11,6 +11,7 @@ public class Snapshot implements Serializable {
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
 	private HashMap<String, Unit> units;
+	private HashMap<String, String> helpers;
 
 	/**
 	 * 
@@ -51,6 +52,14 @@ public class Snapshot implements Serializable {
 
 	public static int getMapHeight() {
 		return MAP_HEIGHT;
+	}
+
+	public HashMap<String, String> getHelpers() {
+		return helpers;
+	}
+
+	public void setHelpers(HashMap<String, String> helpers) {
+		this.helpers = helpers;
 	}
 
 }

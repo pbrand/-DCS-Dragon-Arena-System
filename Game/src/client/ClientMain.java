@@ -1,6 +1,10 @@
 package client;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -9,6 +13,7 @@ import java.util.Random;
 
 import server.helper.IBattleField;
 import common.IPlayerController;
+import common.Enums.Direction;
 
 public class ClientMain {
 
@@ -23,13 +28,13 @@ public class ClientMain {
 		IPlayerController stub = null;
 		try {
 			String playerName = null;
-			
+
 			if (args.length < 2) {
 				playerName = "p_" + randomString(10);
 			} else {
 				playerName = args[1];
 			}
-			
+
 			serverID = playerName;
 
 			String battleServer = "main_battle_server";
@@ -63,10 +68,54 @@ public class ClientMain {
 					+ ", reg: " + reg.toString());
 			printRegistry(reg.list());
 			player.spawnPlayer();
-
+			
+			playerCommander(playerName);
+			
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void playerCommander(String player) {
+		Runnable myRunnable = new Runnable() {
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+					System.in));
+
+			public void run() {
+				System.out.println("Player commander Running");
+				while (true) {
+
+					String line = "";
+
+					try {
+						line = in.readLine();
+						String[] res = line.split(" ");
+						if (res.length > 0 && res[0].equals("m")) {
+							Direction dir =  Direction.values()[(int) (Direction.values().length * Math
+									.random())];
+							movePlayer(player, dir);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+			}
+		};
+		Thread thread = new Thread(myRunnable);
+		thread.start();
+	}
+
+	private static void movePlayer(String player, Direction direction) {
+		try {
+			IPlayerController RMIServer = (IPlayerController) Naming
+					.lookup("rmi://" + helper_host + ":" + helper_port + "/"
+							+ player);
+			RMIServer.movePlayer(direction);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	public static String getHelperServer(String battleServerLocation,
@@ -99,7 +148,7 @@ public class ClientMain {
 			System.out.println("item[" + i + "]: " + array[i]);
 		}
 	}
-	
+
 	private static String randomString(int len) {
 		final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		Random rnd = new Random();
