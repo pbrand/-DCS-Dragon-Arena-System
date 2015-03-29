@@ -40,6 +40,7 @@ public class BattleField implements IBattleField {
 	// public final static String serverID = "server";
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
+	public final static int NR_OF_DRAGONS = 20;
 	private HashMap<String, Unit> units;
 
 	private static String myAddress;
@@ -79,6 +80,13 @@ public class BattleField implements IBattleField {
 			map = new Unit[MAP_WIDTH][MAP_HEIGHT];
 			units = new HashMap<String, Unit>();
 			helpers = new HashMap<String, String>();
+			
+			for(int i = 0; i < NR_OF_DRAGONS; i++) {
+				Unit dragon = new Dragon();
+				String id = "Dragon"+i;
+				int[] pos = getAvailablePosition();
+				this.spawnUnit(id, dragon, pos[0], pos[1]);
+			}
 		}
 		
 		setMyAddress(address);
@@ -228,14 +236,6 @@ public class BattleField implements IBattleField {
 			this.removeUnit((Integer) msg.get("x"), (Integer) msg.get("y"));
 			return;
 		}
-
-		// case MessageRequest.getBattleFieldInfo: {
-		// reply = new Message(from);
-		// reply.setRequest(MessageRequest.getBattleFieldInfo);
-		// reply.put("mapWidth", MAP_WIDTH);
-		// reply.put("mapHeight", MAP_HEIGHT);
-		// }
-
 		}
 
 		if (reply != null) {

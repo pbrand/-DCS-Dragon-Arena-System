@@ -23,6 +23,10 @@ public class PlayerController implements IPlayerController {
 	private String host; // helper host
 
 	private boolean running = false;
+	/* Reaction speed of the player
+	 * This is the time needed for the player to take its next turn.
+	 * Measured in half a seconds x GAME_SPEED.
+	 */
 	protected int timeBetweenTurns;
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
@@ -36,6 +40,9 @@ public class PlayerController implements IPlayerController {
 		this.battleHelper = battle_helper;
 		this.battleServer = battle_server;
 		this.battleServerLocation = battleServerLocation;
+		
+		/* Create a random delay */
+		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
 	}
 
 	public void run() {
@@ -48,17 +55,15 @@ public class PlayerController implements IPlayerController {
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
 			try {
+				/* Sleep while the player is considering its next move */
 				Thread.sleep(1000);
+				//Thread.sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			if (i > 4) {
 				break;
 			}
-
-			/* Sleep while the player is considering its next move */
-			// Thread.currentThread().sleep((int)(timeBetweenTurns * 500 *
-			// GameState.GAME_SPEED));
 
 			/* Stop if the player runs out of hitpoints */
 			// Receive a message here?? (if hitpoints <= 0) -> then set running

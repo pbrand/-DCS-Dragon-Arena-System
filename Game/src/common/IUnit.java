@@ -11,10 +11,10 @@ public interface IUnit {
 	 */
 	public int getMaxHitPoints();
 
-	/**
-	 * @return the unique unit identifier.
-	 */
-	public int getUnitID();
+//	/**
+//	 * @return the unique unit identifier.
+//	 */
+//	public int getUnitID();
 
 	/**
 	 * @return the current number of hitpoints.
@@ -28,7 +28,7 @@ public interface IUnit {
 
 	// public UnitType getType(int x, int y);
 
-	public void moveUnit(int x, int y);
+	//public void moveUnit(int x, int y);
 
 	// Disconnects the unit from the battlefield by exiting its run-state
 	public void disconnect();

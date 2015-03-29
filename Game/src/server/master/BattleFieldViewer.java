@@ -102,12 +102,12 @@ public class BattleFieldViewer extends JPanel implements Runnable {
 						(int) xRatio - 1, (int) yRatio - 1);
 
 				/* Draw healthbar */
-				// doubleBufferGraphics.setColor(Color.GREEN);
-				// filler = (double)yRatio * u.getHitPoints() /
-				// (double)u.getMaxHitPoints();
-				// doubleBufferGraphics.fillRect((int)(x + 0.75 * xRatio),
-				// (int)(y + 1 + yRatio - filler), (int)xRatio / 4,
-				// (int)(filler));
+				 doubleBufferGraphics.setColor(Color.GREEN);
+				 filler = (double)yRatio * u.getHitPoints() /
+				 (double)u.getMaxHitPoints();
+				 doubleBufferGraphics.fillRect((int)(x + 0.75 * xRatio),
+				 (int)(y + 1 + yRatio - filler), (int)xRatio / 4,
+				 (int)(filler));
 
 				/* Draw the identifier */
 				// doubleBufferGraphics.setColor(Color.WHITE);
