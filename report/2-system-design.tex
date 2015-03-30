@@ -14,13 +14,14 @@ If a user starts the game on his computer, the clients then connects to main ser
 The master server then randomly selects a helper server from the list of his helpers servers.
 The necessary details about the lucky helpers server is then returned to the client. 
 The client then connects to this helper server and registers itself.
+The client also requests the battlefield itself in order to be able to make the correct decisions. 
 If everything works well: the user ready to play!
 When a user tries to perform an action, the action is send to helper server.
 The helper server will then receive the request and depending on the type of action, the helper with request the required information from the main server.
 When this information is received, the helpers performs the required computation of behalf of the player and sends the results to main server.
 The server than send a message back to the client in order to inform him about the result of the action.
 
-\begin{figure}[H]
+\begin{figure}[ht]
 \includegraphics[scale=0.5]{DCS.png}
 \end{figure}
 
@@ -42,6 +43,18 @@ The backup server then updates the knowledge of its backup battlefield and other
 
 If the main server goes down, it becomes impossible for the helper server to perform action on the main obviously.
 If the helpers detect such a problem, they immediately try to send the request to the backup server and asks the backup server to perform the action requested on the battlefield.
-The helpers also notify the backup the failure of the main server and tell the main server that he needs to take over the tasks.
+The helpers also notify the backup, the failure of the main server and tell the main server that he needs to take over the tasks.
 Whenever the backup server gets such a notification, it promotes itself to being the main server and takes all the responsibilities of a main server on itself.
+The backup may be behind a few steps, because the backup is not made after each Unit action, but periodically. 
+Updating the backup after each Unit action would cause overhead at the server.
 
+\subsection{Scalability}
+In order to support a large number of players on the battlefield, it is important for the system to be scalable.
+As stated earlies, the helper server are ones performing the computation for the main server.
+It is possible to add many helper server as possible which can be registered to the main server.
+Clients may then connect to any to these available helper servers in order to play the game.
+
+The main server however is not scalable for distributing workload like the helper servers do. 
+Instead, only a backup is created of the main server, which can be used if the main crashes.
+Since the helper servers are the ones doing the computation, it is also not necessary for the main server to have multiple instances for distributing the workload.
+ 

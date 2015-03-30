@@ -1,1 +1,14 @@
 \section{Experimental Results}
+
+\subsection{Setup}
+During the implementation of the game, the game was mainly tested on the local machines.
+To simulate the distribution of the system locally, different RMI registries were used for the main classes which are supposed to run on different nodes.
+By doing so, the running classes need to call a different (local) server in order to make an RMI call.
+
+\subsection{Consistency Experiments}
+One important issue in a distributed game is keeping the game-state consistent for every client and server.
+This means that battlefield needs to be somehow updated for every client in order to be able to play the game.
+As stated in the previous chapter, the whenever a client sends a request, the required information is returned to the helper server the client is connected to.
+The helpers server itself does not maintain a local state of the game, but only computes results.
+However, the clients and battlefield do maintain a state of the game. 
+Therefore it is important for the master server to maintain a correct state of the game.
