@@ -103,16 +103,14 @@ public class PlayerRunner implements IRunner {
 		case MessageRequest.returnTargets:
 			sendMessageToClient(msg);
 			break;
-//		case MessageRequest.getMap:
-//			IUnit map[][] = (IUnit[][]) msg.get("map");
-//			for(int x = 0; x < battleFieldMapWidth; x++) {
-//				for(int y = 0; y < battleFieldMapHeight; y++) {
-//					if(map[x][y] != null) {
-//						IUnit unit = map[x][y];
-//						System.out.println("Unit: attackpoints: "+unit.getAttackPoints() +" healthpoints: "+unit.getHitPoints());
-//					}
-//				}
-//			}
+		case MessageRequest.healDamage:
+			msg.put("playerID", msg.getSender());
+			sendMessageToServer(msg);
+			break;
+		case MessageRequest.dealDamage:
+			msg.put("playerID", msg.getSender());
+			sendMessageToServer(msg);
+			break;
 		default:
 			break;
 		}
@@ -211,26 +209,28 @@ public class PlayerRunner implements IRunner {
 				msg.put("y", targetY);
 				this.sendMessageToServer(msg);
 				break;
-			case player:
-				// There is a player in the square, attempt a healing
-				//this.healDamage(id, targetX, targetY);
-				msg = new Message(battleServer);
-				msg.setRequest(MessageRequest.healDamage);
-				msg.put("playerID", id);
-				msg.put("x", targetX);
-				msg.put("y", targetY);
-				this.sendMessageToServer(msg);
+			default:
 				break;
-			case dragon:
-				// There is a dragon in the square, attempt a dragon slaying
-				//this.dealDamage(id, targetX, targetY);
-				msg = new Message(battleServer);
-				msg.setRequest(MessageRequest.dealDamage);
-				msg.put("playerID", id);
-				msg.put("x", targetX);
-				msg.put("y", targetY);
-				this.sendMessageToServer(msg);
-				break;
+//			case player:
+//				// There is a player in the square, attempt a healing
+//				//this.healDamage(id, targetX, targetY);
+//				msg = new Message(battleServer);
+//				msg.setRequest(MessageRequest.healDamage);
+//				msg.put("playerID", id);
+//				msg.put("x", targetX);
+//				msg.put("y", targetY);
+//				this.sendMessageToServer(msg);
+//				break;
+//			case dragon:
+//				// There is a dragon in the square, attempt a dragon slaying
+//				//this.dealDamage(id, targetX, targetY);
+//				msg = new Message(battleServer);
+//				msg.setRequest(MessageRequest.dealDamage);
+//				msg.put("playerID", id);
+//				msg.put("x", targetX);
+//				msg.put("y", targetY);
+//				this.sendMessageToServer(msg);
+//				break;
 			}
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			if (changeBackupToMainServer()) {

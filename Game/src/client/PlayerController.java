@@ -103,7 +103,7 @@ public class PlayerController implements IPlayerController {
 						boolean action = false;
 						if(players.size() != 0) {
 							for(IUnit target : players) {
-								if(target.getHitPoints() / target.getMaxHitPoints() < 0.5) {
+								if((double) target.getHitPoints() / (double) target.getMaxHitPoints() < 0.5) {
 									healDamage(target.getX(), target.getY());
 									action = true;
 									break;
@@ -113,13 +113,14 @@ public class PlayerController implements IPlayerController {
 						if(!action) {
 							if(dragons.size() != 0) {
 								int minimumHealth = Integer.MAX_VALUE;
-								IUnit dragonToSlay;
+								IUnit dragonToSlay = null;
 								for(IUnit target : dragons) {
 									if(target.getHitPoints() < minimumHealth){
 										minimumHealth = target.getHitPoints();
 										dragonToSlay = target;
 									}
 								}
+								this.dealDamage(dragonToSlay.getX(), dragonToSlay.getY());
 							}
 							// Move closer to a dragon.
 							else {
@@ -183,8 +184,31 @@ public class PlayerController implements IPlayerController {
 	}
 
 	private void healDamage(int x, int y) {
-		// TODO Auto-generated method stub
-		
+		Message heal = createHealDamageMessage(x,y);
+		log(heal.toString());
+		sendMessage(heal);
+	}
+
+	private Message createHealDamageMessage(int x, int y) {
+		Message msg = createMessage(battleServer);
+		msg.setRequest(MessageRequest.healDamage);
+		msg.put("x", x);
+		msg.put("y", y);
+		return msg;
+	}
+	
+	private void dealDamage(int x, int y) {
+		Message attack = createDealDamageMessage(x,y);
+		log(attack.toString());
+		sendMessage(attack);
+	}
+
+	private Message createDealDamageMessage(int x2, int y2) {
+		Message msg = createMessage(battleServer);
+		msg.setRequest(MessageRequest.dealDamage);
+		msg.put("x", x);
+		msg.put("y", y);
+		return msg;
 	}
 
 	public void spawnPlayer() {
