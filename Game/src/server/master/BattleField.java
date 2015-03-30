@@ -42,6 +42,7 @@ public class BattleField implements IBattleField {
 	public final static int MAP_HEIGHT = 25;
 	public final static int NR_OF_DRAGONS = 20;
 	private HashMap<String, Unit> units;
+	private HashMap<String, Unit> dragons;
 
 	private static String myAddress;
 	private static HashMap<String, String> helpers;
@@ -80,13 +81,16 @@ public class BattleField implements IBattleField {
 			map = new Unit[MAP_WIDTH][MAP_HEIGHT];
 			units = new HashMap<String, Unit>();
 			helpers = new HashMap<String, String>();
+			dragons = new HashMap<String, Unit>();
 			
-			for(int i = 0; i < 1/*NR_OF_DRAGONS*/; i++) {
+
+			/*for(int i = 0; i < NR_OF_DRAGONS; i++) {
 				Unit dragon = new Dragon();
 				String id = "Dragon"+i;
 				int[] pos = getAvailablePosition();
 				this.spawnUnit(id, dragon, pos[0], pos[1]);
-			}
+			}*/
+			dragonRunner();
 		}
 		
 		setMyAddress(address);
@@ -458,6 +462,16 @@ public class BattleField implements IBattleField {
 		mapChanged = true;
 	}
 	
+	private synchronized void removeDragon(int x, int y) {
+		Unit unitToRemove = this.getUnit(x, y);
+		if (unitToRemove == null || !(unitToRemove instanceof Dragon))
+			return; 
+		map[x][y] = null;
+		units.remove(unitToRemove);
+		unitsChanged = true;
+		mapChanged = true;
+	}
+	
 	
 	private synchronized void disconnectUnit(String id) {
 		Unit unitToDisconnect = units.get(id);
@@ -678,6 +692,59 @@ public class BattleField implements IBattleField {
 			e.printStackTrace();
 		}
 
+	}
+	
+	private void dragonRunner() {
+		Runnable myRunnable = new Runnable() {
+
+			public void run() {
+				log("DragonRunner running");
+				int dragons = numberOfDragons();
+				int players = numberOfPlayers();
+				while (true) {
+					try {
+						Thread.sleep(500);	
+						dragons = numberOfDragons();
+						players = numberOfPlayers();
+						if (dragons < NR_OF_DRAGONS) {							
+							spawnDragon();							
+						} 
+						
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		Thread thread = new Thread(myRunnable);
+		thread.start();
+	}
+	
+	private int numberOfPlayers() {		
+		return units.size();
+	}
+	
+	private int numberOfDragons() {
+		return dragons.size();
+	}
+	
+	private void spawnDragon() {
+		Unit dragon = new Dragon();
+		String id = "Dragon" + lastUnitID;
+		lastUnitID += 1;
+		int[] pos = getAvailablePosition();
+		this.spawnUnit(id, dragon, pos[0], pos[1]);
+		this.dragons.put(id, dragon);
+	}
+	
+	private void stopRandomDragon() {
+		if (numberOfDragons() > 0) {
+			Random rnd = new Random();
+			int i = (int) rnd.nextInt(dragons.size());
+			List<String> list = new ArrayList<String>(dragons.keySet());
+			Unit dragon = dragons.get(list.get(i));
+			this.removeDragon(dragon.getX(), dragon.getY());
+		}
 	}
 
 	private void initBackupService() {

@@ -16,8 +16,9 @@ public class ClientTestRunner {
 
 	private static void executeClients(List<GtaClient> clients,
 			String mainAddress) {
-		for (int i = 0; i < clients.size() && i < 101; i++) {
-			String[] arguments = { mainAddress, "p_" + clients.get(i).getId() };
+		for (int i = 0; i < clients.size() && i < 108; i++) {			
+			double runtime = clients.get(i).getLifespan();
+			String[] arguments = { mainAddress, "p_" + clients.get(i).getId(), runtime + ""};
 			clientRunner(arguments);
 			if (i < clients.size()) {
 				double time = (clients.get(i + 1).getTimestamp() - clients.get(i).getTimestamp()) / 1000;
@@ -36,13 +37,16 @@ public class ClientTestRunner {
 			public void run() {
 				try {
 					ClientMain.main(arguments);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		};
+		
 		Thread thread = new Thread(myRunnable);
 		thread.start();
+						
 	}
-
+	
 }

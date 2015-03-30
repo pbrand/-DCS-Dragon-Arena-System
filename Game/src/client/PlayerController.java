@@ -38,8 +38,19 @@ public class PlayerController implements IPlayerController {
 	protected int timeBetweenTurns;
 	private int closestEnemyX;
 	private int closestEnemyY;
+	private double lifespan;
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
+	
+	public PlayerController(String playerID, String host, int port,
+			String battle_helper, String battleServerLocation,
+			String battle_server, double lifespan) {
+		this(playerID, host, port, battle_helper, battleServerLocation, battle_server);
+		this.lifespan = lifespan;
+		
+		/* Create a random delay */
+		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
+	}
 
 	public PlayerController(String playerID, String host, int port,
 			String battle_helper, String battleServerLocation,
@@ -59,6 +70,7 @@ public class PlayerController implements IPlayerController {
 		this.setRunning(true);
 
 		int i = 0;
+		int life = (int) Math.round(lifespan/ 100);
 		// TODO This is an infinite loop until it receives a message that it
 		// should stop. That's tricky.
 		while (/* GameState.getRunningState() && */this.running) {
@@ -159,6 +171,10 @@ public class PlayerController implements IPlayerController {
 					e.printStackTrace();
 				};
 
+			if (i > life) {
+				disconnectPlayer();
+				break;
+			}
 
 			/* Stop if the player runs out of hitpoints */
 			// Receive a message here?? (if hitpoints <= 0) -> then set running
