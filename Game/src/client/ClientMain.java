@@ -55,7 +55,7 @@ public class ClientMain {
 			log(playerName, "host: " + helper_host + ":" + helper_port);
 
 			player = new PlayerController(playerName, helper_host, helper_port,
-					battle_helper, battleServerLocation, battleServer);
+					battle_helper, battleServerLocation, battleServer, Double.parseDouble(args[2]));
 
 			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
 					0);

@@ -28,8 +28,19 @@ public class PlayerController implements IPlayerController {
 	 * Measured in half a seconds x GAME_SPEED.
 	 */
 	protected int timeBetweenTurns;
+	private double lifespan;
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
+	
+	public PlayerController(String playerID, String host, int port,
+			String battle_helper, String battleServerLocation,
+			String battle_server, double lifespan) {
+		this(playerID, host, port, battle_helper, battleServerLocation, battle_server);
+		this.lifespan = lifespan;
+		
+		/* Create a random delay */
+		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
+	}
 
 	public PlayerController(String playerID, String host, int port,
 			String battle_helper, String battleServerLocation,
@@ -50,6 +61,7 @@ public class PlayerController implements IPlayerController {
 		this.setRunning(true);
 
 		int i = 0;
+		int life = (int) Math.round(lifespan/ 100);
 		// TODO This is an infinite loop until it receives a message that it
 		// should stop. That's tricky.
 		while (/* GameState.getRunningState() && */this.running) {
@@ -61,7 +73,7 @@ public class PlayerController implements IPlayerController {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if (i > 2) {
+			if (i > life) {
 				disconnectPlayer();
 				break;
 			}
