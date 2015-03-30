@@ -33,4 +33,8 @@ public interface IUnit {
 	// Disconnects the unit from the battlefield by exiting its run-state
 	public void disconnect();
 
+	public int getX();
+	
+	public int getY();
+
 }

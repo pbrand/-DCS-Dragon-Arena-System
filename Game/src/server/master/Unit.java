@@ -19,6 +19,7 @@ public abstract class Unit implements Serializable, IUnit {
 	 * 
 	 */
 	private static final long serialVersionUID = -8843472568878441565L;
+	public static final int ATTACK_RANGE = 2;
 
 	public Unit(int maxHealth, int attackPoints) {
 		// Initialize the max health and health

@@ -6,6 +6,7 @@ public class Player extends Unit {
 	public static final int MAX_HITPOINTS = 10;
 	public static final int MIN_ATTACKPOINTS = 1;
 	public static final int MAX_ATTACKPOINTS = 10;
+	public static final int HEAL_RANGE = 5;
 
 	/**
 	 * Create a player, initialize both 

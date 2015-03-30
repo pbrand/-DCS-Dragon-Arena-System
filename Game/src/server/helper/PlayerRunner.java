@@ -12,6 +12,7 @@ import common.Enums.Direction;
 import common.Enums.UnitType;
 import common.IPlayerController;
 import common.IRunner;
+import common.IUnit;
 import common.Log;
 import common.Message;
 import common.MessageRequest;
@@ -94,9 +95,24 @@ public class PlayerRunner implements IRunner {
 			break;
 		case MessageRequest.spawnAck:
 			sendMessageToClient(msg);
-			// case MessageRequest.getBattleFieldInfo:
-			// this.battleFieldMapWidth = (int) msg.get("mapWidth");
-			// this.battleFieldMapHeight = (int) msg.get("mapHeight");
+			break;
+		case MessageRequest.getTargets:
+			msg.put("playerID", msg.getSender());
+			sendMessageToServer(msg);
+			break;
+		case MessageRequest.returnTargets:
+			sendMessageToClient(msg);
+			break;
+//		case MessageRequest.getMap:
+//			IUnit map[][] = (IUnit[][]) msg.get("map");
+//			for(int x = 0; x < battleFieldMapWidth; x++) {
+//				for(int y = 0; y < battleFieldMapHeight; y++) {
+//					if(map[x][y] != null) {
+//						IUnit unit = map[x][y];
+//						System.out.println("Unit: attackpoints: "+unit.getAttackPoints() +" healthpoints: "+unit.getHitPoints());
+//					}
+//				}
+//			}
 		default:
 			break;
 		}
