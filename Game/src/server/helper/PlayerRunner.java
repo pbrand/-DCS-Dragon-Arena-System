@@ -85,6 +85,16 @@ public class PlayerRunner implements IRunner {
 			}
 			sendMessageToServer(msg);
 			break;
+		case MessageRequest.disconnectUnit:
+			try {
+				clients.put(msg.getSender(), RemoteServer.getClientHost() + ":"
+						+ msg.getMiddlemanPort());
+			} catch (ServerNotActiveException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			sendMessageToServer(msg);
+			break;
 		case MessageRequest.moveUnit:
 			moveUnit(msg.getSender(), (Direction) msg.get("direction"));
 			break;
@@ -136,7 +146,7 @@ public class PlayerRunner implements IRunner {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			pos = RMIServer.getPosition(id);
-			Log.log(myAddress, "Position of player: " + pos[0] + " " + pos[1]);
+			Log.log(myAddress, "Position of player: " + pos[0] + " " + pos[1]); // THIS LOG IS AT THE WRONG PLACE. THIS WAS JUST A PERSONAL DEBUG VALUE.
 			int targetX = pos[0];
 			int targetY = pos[1];
 			switch (direction) {
@@ -184,12 +194,24 @@ public class PlayerRunner implements IRunner {
 				this.sendMessageToServer(msg);
 				break;
 			case player:
-				// // There is a player in the square, attempt a healing
-				// this.healDamage(targetX, targetY, getAttackPoints());
+				// There is a player in the square, attempt a healing
+				//this.healDamage(id, targetX, targetY);
+				msg = new Message(battleServer);
+				msg.setRequest(MessageRequest.healDamage);
+				msg.put("playerID", id);
+				msg.put("x", targetX);
+				msg.put("y", targetY);
+				this.sendMessageToServer(msg);
 				break;
 			case dragon:
-				// // There is a dragon in the square, attempt a dragon slaying
-				// this.dealDamage(targetX, targetY, getAttackPoints());
+				// There is a dragon in the square, attempt a dragon slaying
+				//this.dealDamage(id, targetX, targetY);
+				msg = new Message(battleServer);
+				msg.setRequest(MessageRequest.dealDamage);
+				msg.put("playerID", id);
+				msg.put("x", targetX);
+				msg.put("y", targetY);
+				this.sendMessageToServer(msg);
 				break;
 			}
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {

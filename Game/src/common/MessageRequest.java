@@ -10,7 +10,7 @@ public class MessageRequest {
 	public static final String removeUnit = "removeUnit";
 	public static final String moveUnit = "moveUnit";
 	public static final String putUnit = "putUnit";
-	public static final Object disconnect = "disconnect";
+	public static final String disconnectUnit = "disconnect";
 	public static final String spawnAck = "spawnAck";
 
 	//public static final String getBattleFieldInfo = "getBattleFieldInfo";

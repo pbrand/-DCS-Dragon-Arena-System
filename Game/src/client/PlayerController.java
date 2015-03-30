@@ -61,7 +61,7 @@ public class PlayerController implements IPlayerController {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if (i > 4) {
+			if (i > 10) {
 				break;
 			}
 
@@ -83,10 +83,22 @@ public class PlayerController implements IPlayerController {
 		log(spawn.toString());
 		sendMessage(spawn);
 	}
+	
+	public void disconnectPlayer() {
+		Message disconnect = createDisconnectMessage();
+		log(disconnect.toString());
+		sendMessage(disconnect);
+	}
 
 	private Message createSpawnMessage() {
 		Message msg = createMessage(battleServer);
 		msg.setRequest(MessageRequest.spawnUnit);
+		return msg;
+	}
+	
+	private Message createDisconnectMessage() {
+		Message msg = createMessage(battleServer);
+		msg.setRequest(MessageRequest.disconnectUnit);
 		return msg;
 	}
 

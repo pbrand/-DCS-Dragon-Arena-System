@@ -205,8 +205,11 @@ public class BattleField implements IBattleField {
 			int x = (Integer) msg.get("x");
 			int y = (Integer) msg.get("y");
 			unit = this.getUnit(x, y);
-			if (unit != null)
-				unit.adjustHitPoints(-(Integer) msg.get("damage"));
+			if (unit != null) {
+				//unit.adjustHitPoints(-(Integer) msg.get("damage"));
+				unit.adjustHitPoints(-units.get((String) msg.get("playerID")).getAttackPoints());
+				unitsChanged = true;
+			}
 			/*
 			 * Copy the id of the message so that the unit knows what message
 			 * the battlefield responded to.
@@ -217,8 +220,11 @@ public class BattleField implements IBattleField {
 			int x = (Integer) msg.get("x");
 			int y = (Integer) msg.get("y");
 			unit = this.getUnit(x, y);
-			if (unit != null)
-				unit.adjustHitPoints((Integer) msg.get("healed"));
+			if (unit != null) {	
+				//unit.adjustHitPoints((Integer) msg.get("healed"));
+				unit.adjustHitPoints(units.get((String) msg.get("playerID")).getAttackPoints());
+				unitsChanged = true;
+			}
 			/*
 			 * Copy the id of the message so that the unit knows what message
 			 * the battlefield responded to.
@@ -234,6 +240,10 @@ public class BattleField implements IBattleField {
 		}
 		case MessageRequest.removeUnit: {
 			this.removeUnit((Integer) msg.get("x"), (Integer) msg.get("y"));
+			return;
+		}
+		case MessageRequest.disconnectUnit: {
+			this.disconnectUnit((String) msg.get("id"));
 			return;
 		}
 		}
@@ -363,6 +373,18 @@ public class BattleField implements IBattleField {
 		map[x][y] = null;
 		unitToRemove.disconnect();
 		units.remove(unitToRemove);
+		unitsChanged = true;
+		mapChanged = true;
+	}
+	
+	private synchronized void disconnectUnit(String id) {
+		Unit unitToDisconnect = units.get(id);
+		if (unitToDisconnect == null)
+			return; // There was no unit here to remove
+		int x = unitToDisconnect.getX();
+		int y = unitToDisconnect.getY();
+		map[x][y] = null;
+		units.remove(id);
 		unitsChanged = true;
 		mapChanged = true;
 	}
