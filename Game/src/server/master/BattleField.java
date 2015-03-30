@@ -243,7 +243,7 @@ public class BattleField implements IBattleField {
 			return;
 		}
 		case MessageRequest.disconnectUnit: {
-			this.disconnectUnit((String) msg.get("id"));
+			this.disconnectUnit((String) msg.get("playerID"));
 			return;
 		}
 		}
@@ -377,14 +377,19 @@ public class BattleField implements IBattleField {
 		mapChanged = true;
 	}
 	
+	
 	private synchronized void disconnectUnit(String id) {
 		Unit unitToDisconnect = units.get(id);
-		if (unitToDisconnect == null)
+		if (unitToDisconnect == null) {
+			log("Player with id: "+id+" could not disconnect, no unit found");
 			return; // There was no unit here to remove
+		}
 		int x = unitToDisconnect.getX();
 		int y = unitToDisconnect.getY();
 		map[x][y] = null;
 		units.remove(id);
+		log("Player with id: "+id+" has disconnected.");
+
 		unitsChanged = true;
 		mapChanged = true;
 	}

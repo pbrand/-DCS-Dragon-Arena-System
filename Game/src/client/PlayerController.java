@@ -61,7 +61,8 @@ public class PlayerController implements IPlayerController {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if (i > 10) {
+			if (i > 2) {
+				disconnectPlayer();
 				break;
 			}
 

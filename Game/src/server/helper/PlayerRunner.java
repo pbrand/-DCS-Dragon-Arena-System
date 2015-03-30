@@ -86,14 +86,8 @@ public class PlayerRunner implements IRunner {
 			sendMessageToServer(msg);
 			break;
 		case MessageRequest.disconnectUnit:
-			try {
-				clients.put(msg.getSender(), RemoteServer.getClientHost() + ":"
-						+ msg.getMiddlemanPort());
-			} catch (ServerNotActiveException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			sendMessageToServer(msg);
+			disconnectUser(msg.getSender());
+			clients.remove(msg.getSender());
 			break;
 		case MessageRequest.moveUnit:
 			moveUnit(msg.getSender(), (Direction) msg.get("direction"));
@@ -106,6 +100,14 @@ public class PlayerRunner implements IRunner {
 		default:
 			break;
 		}
+	}
+
+	private void disconnectUser(String id) {
+		// Send disconnect message to the main server.
+		Message msg = new Message(battleServer);
+		msg.setRequest(MessageRequest.disconnectUnit);
+		msg.put("playerID", id);
+		this.sendMessageToServer(msg);
 	}
 
 	/*
@@ -146,7 +148,6 @@ public class PlayerRunner implements IRunner {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			pos = RMIServer.getPosition(id);
-			Log.log(myAddress, "Position of player: " + pos[0] + " " + pos[1]); // THIS LOG IS AT THE WRONG PLACE. THIS WAS JUST A PERSONAL DEBUG VALUE.
 			int targetX = pos[0];
 			int targetY = pos[1];
 			switch (direction) {
@@ -179,6 +180,7 @@ public class PlayerRunner implements IRunner {
 				targetX = targetX + 1;
 				break;
 			}
+			Log.log(myAddress, "Position of player: " + targetX + " " + targetY);
 			// Get what unit lies in the target square
 			UnitType adjacentUnitType = RMIServer.getType(targetX, targetY);
 			Message msg;
