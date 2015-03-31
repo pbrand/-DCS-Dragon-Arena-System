@@ -48,11 +48,11 @@ WantGame BV wants to develop a new game engine. Because the computational comple
 	\item Initially a player has between 10 and 20 health points and between 1 and 10 attack points.
 	\item Initially a dragon has between 50 an 100 health points and between 5 and 20 attack points.
 	\item A player can either move one step horizontally or vertically during a single action.
-	\item A player can hit a dragon either from a distance of at most 2 horizontal or 2 vertical squares.
-	\item A dragon can hit a player either from a distance of at most 2 horizontal or 2 vertical squares.
+	\item A player can hit a dragon either from a distance of at most 2 squares (sum of horizontal and vertical distance in squares).
+	\item A dragon can hit a player either from a distance of at most 2 squares (sum of horizontal and vertical distance in squares).
 	\item A player is not able to hit another player.
 	\item A player can heal another player by adding the receivers health points by an amount equal to the healer's attack points, up to the receiver's maximum initial health points. 
-	\item A player can heal another player from a distance of at most 5 horizontal or 5 vertical squares.
+	\item A player can heal another player from a distance of at most 5 squares.  (sum of horizontal and vertical distance in squares)
 \end{enumerate}
 
 \section{Design choices}
