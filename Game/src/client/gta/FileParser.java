@@ -12,9 +12,7 @@ public class FileParser {
 
 	public static List<GtaClient> getClientsData(String file) {
 		List<GtaClient> clients = readFile(file);
-		// System.out.println(clients);
 		sort(clients);
-		System.out.println(clients);
 		return clients;
 	}
 

@@ -12,13 +12,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import server.helper.IBattleField;
-
 import common.Enums.UnitType;
+import common.IBattleField;
 import common.IRunner;
 import common.Log;
 import common.Message;
 import common.MessageRequest;
+import common.Snapshot;
 
 public class BattleField implements IBattleField {
 

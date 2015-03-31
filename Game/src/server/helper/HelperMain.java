@@ -7,6 +7,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 import common.Common;
+import common.IBattleField;
 import common.IRunner;
 import common.Log;
 

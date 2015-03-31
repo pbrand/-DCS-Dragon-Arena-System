@@ -8,7 +8,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 
-import server.master.Unit;
 import common.Enums.Direction;
 import common.IPlayerController;
 import common.IRunner;
@@ -42,6 +41,18 @@ public class PlayerController implements IPlayerController {
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
 	
+	/**
+	 * Metrics
+	 */
+	private int totalMessagesSend;
+	private int totalMessagesReceived;
+	private int totalMessagesFailedToSend;
+	private int totalMessagesFailedToReceive;
+	private int totalNumberOfHelperSwitched;
+	
+	private long startTime;
+	private long endTime;
+	
 	public PlayerController(String playerID, String host, int port,
 			String battle_helper, String battleServerLocation,
 			String battle_server, double lifespan) {
@@ -55,6 +66,7 @@ public class PlayerController implements IPlayerController {
 	public PlayerController(String playerID, String host, int port,
 			String battle_helper, String battleServerLocation,
 			String battle_server) {
+		startTime = System.currentTimeMillis();
 		this.playerID = playerID;
 		this.port = port;
 		this.host = host;
@@ -276,7 +288,7 @@ public class PlayerController implements IPlayerController {
 			RMIServer = (IRunner) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
-
+			totalMessagesSend += 1;
 		} catch (NotBoundException | MalformedURLException | RemoteException e) {
 			e.printStackTrace();
 			if (this.resetHelperServer()) {
@@ -284,9 +296,11 @@ public class PlayerController implements IPlayerController {
 			} else {
 				log("no server is online");
 				this.running = false;
+				totalMessagesFailedToSend += 1;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			totalMessagesFailedToSend += 1;
 		}
 	}
 
@@ -295,6 +309,7 @@ public class PlayerController implements IPlayerController {
 		// TODO Auto-generated method stub
 		log("PlayerController: received message");
 		log("PlayerController: msg: " + msg.toString());
+		totalMessagesReceived += 1;
 		// Update somethings
 		switch (msg.getRequest()) {
 		case MessageRequest.spawnAck:
@@ -354,7 +369,7 @@ public class PlayerController implements IPlayerController {
 		try {
 			IRunner RMIServer = (IRunner) Naming.lookup(urlServer);
 			RMIServer.registerWithServer(this.playerID, host + ":" + "/");
-
+			totalNumberOfHelperSwitched += 1;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -363,6 +378,19 @@ public class PlayerController implements IPlayerController {
 		reset = true;
 
 		return reset;
+	}
+	
+	public String getMetrics() {
+		this.endTime = System.currentTimeMillis();
+		String res = "\n";
+		res += ("[" + playerID + "] Total Messages Send: " + totalMessagesSend + "\n");
+		res += ("[" + playerID + "] Total Messages Received: " + totalMessagesReceived + "\n");
+		res += ("[" + playerID + "] Total Messages Failed To Send: " + totalMessagesFailedToSend + "\n" );
+		res += ("[" + playerID + "] Total Messages Failed To Receive: " + totalMessagesFailedToReceive + "\n" );
+		res += ("[" + playerID + "] Total Times Helpers switched: " + totalNumberOfHelperSwitched + "\n" );
+		res += ("[" + playerID + "] Runtime: " + common.Common.getFormatedTime(endTime - startTime) + "\n");
+		
+		return res;
 	}
 	
 	private void log(String text) {

@@ -10,9 +10,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import server.helper.IBattleField;
-
 import common.Common;
+import common.IBattleField;
 import common.Enums.Direction;
 import common.IPlayerController;
 

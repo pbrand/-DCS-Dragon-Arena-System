@@ -1,12 +1,10 @@
-package server.helper;
+package common;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 
-import server.master.Snapshot;
 import common.Enums.UnitType;
-import common.Message;
 
 public interface IBattleField extends Remote {
 

@@ -1,7 +1,9 @@
-package server.master;
+package common;
 
 import java.io.Serializable;
 import java.util.HashMap;
+
+import server.master.Unit;
 
 public class Snapshot implements Serializable {
 

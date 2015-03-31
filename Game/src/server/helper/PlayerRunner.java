@@ -7,9 +7,11 @@ import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import common.Enums.Direction;
 import common.Enums.UnitType;
+import common.IBattleField;
 import common.IPlayerController;
 import common.IRunner;
 import common.Log;
@@ -339,7 +341,30 @@ public class PlayerRunner implements IRunner {
 		res += ("[H] Total CHangerequests of Main Server: " + totalChangeRequestsOfMainServer + "\n" );
 		res += ("[H] Runtime: " + common.Common.getFormatedTime(endTime - startTime) + "\n");
 		
+		res += "\n" + getClientMetrics();
+		
 		return res;
+	}
+	
+	private String getClientMetrics() {
+		String res = "";
+		Iterator<String> iterator = clients.keySet().iterator();
+		while (iterator.hasNext()) {
+			String key = iterator.next().toString();
+			res += getMetricOfClient(key);
+		}
+		return res;
+	}
+	
+	private String getMetricOfClient(String client) {
+		IPlayerController RMIServer;
+		try {
+			RMIServer = (IPlayerController) Naming.lookup("rmi://" + this.myAddress.split("/")[0] + "/" + client);
+			return RMIServer.getMetrics();
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 	
 }
