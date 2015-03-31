@@ -14,6 +14,7 @@ public class Snapshot implements Serializable {
 	public final static int MAP_HEIGHT = 25;
 	private HashMap<String, Unit> units;
 	private HashMap<String, String> helpers;
+	private HashMap<String, Unit> dragons;
 
 	/**
 	 * 
@@ -43,9 +44,17 @@ public class Snapshot implements Serializable {
 	public HashMap<String, Unit> getUnits() {
 		return units;
 	}
+	
+	public HashMap<String, Unit> getDragons() {
+		return dragons;
+	}
 
 	public void setUnits(HashMap<String, Unit> units) {
 		this.units = units;
+	}
+	
+	public void setDragons(HashMap<String, Unit> dragons) {
+		this.dragons = dragons;
 	}
 
 	public static int getMapWidth() {

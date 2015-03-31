@@ -54,6 +54,7 @@ public class BattleField implements IBattleField {
 	private boolean unitsChanged;
 	private boolean mapChanged;
 	private boolean helpersChanged;
+	private boolean dragonsChanged;
 	
 	/**
 	 * Metrics
@@ -84,7 +85,8 @@ public class BattleField implements IBattleField {
 	 * @throws RemoteException
 	 */
 	private BattleField(boolean isBackup) throws RemoteException {
-		this.startTime = System.currentTimeMillis();	
+		this.startTime = System.currentTimeMillis();
+		this.isBackup = isBackup;
 	}
 	
 	private BattleField() throws RemoteException {
@@ -98,15 +100,6 @@ public class BattleField implements IBattleField {
 			units = new HashMap<String, Unit>();
 			helpers = new HashMap<String, String>();
 			dragons = new HashMap<String, Unit>();
-			
-
-			/*for(int i = 0; i < NR_OF_DRAGONS; i++) {
-				Unit dragon = new Dragon();
-				String id = "Dragon"+i;
-				int[] pos = getAvailablePosition();
-				this.spawnUnit(id, dragon, pos[0], pos[1]);
-			}*/
-			dragonRunner();
 		}
 		
 		setMyAddress(address);
@@ -114,6 +107,7 @@ public class BattleField implements IBattleField {
 		if (!isBackup) {
 			initHelperChecker();
 			initBackupService();
+			dragonRunner();
 		}
 	}
 
@@ -748,13 +742,17 @@ public class BattleField implements IBattleField {
 		snap.setLastUnitID(lastUnitID);
 
 		if (mapChanged)
-			snap.setMap(map);
+			//snap.setMap(map);
 
 		if (unitsChanged)
-			snap.setUnits(units);
+			//snap.setUnits(units);
 		
 		if (helpersChanged) {
 			snap.setHelpers(helpers);
+		}
+		
+		if(dragonsChanged) {
+			snap.setDragons(dragons);
 		}
 
 		IBattleField RMIServer = null;
@@ -774,6 +772,7 @@ public class BattleField implements IBattleField {
 				unitsChanged = false;
 				mapChanged = false;
 				helpersChanged = false;
+				dragonsChanged = false;
 				totalNumberOfSuccessfullBackupUpdates += 1;
 			}
 		} catch (RemoteException e) {
@@ -795,7 +794,9 @@ public class BattleField implements IBattleField {
 						dragons = numberOfDragons();
 						if (dragons < NR_OF_DRAGONS) {							
 							spawnDragon();							
-						} 
+						}  else {
+							break;
+						}
 						
 					} catch (InterruptedException e) {	
 						e.printStackTrace();
@@ -818,6 +819,7 @@ public class BattleField implements IBattleField {
 		int[] pos = getAvailablePosition();
 		this.spawnUnit(id, dragon, pos[0], pos[1]);
 		this.dragons.put(id, dragon);
+		dragonsChanged = true;
 	}
 	
 	private void initBackupService() {
@@ -858,6 +860,11 @@ public class BattleField implements IBattleField {
 		if (snapshot.getHelpers() != null) {
 			helpers = snapshot.getHelpers();
 			log("Helpers updated: " + helpers.size());
+		}
+		
+		if (snapshot.getDragons() != null) {
+			dragons = snapshot.getDragons();
+			log("Dragons updated: " + dragons.size());
 		}
  		
 		return true;

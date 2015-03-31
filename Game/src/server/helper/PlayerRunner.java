@@ -55,7 +55,6 @@ public class PlayerRunner implements IRunner {
 
 	@Override
 	public void sendMessageToServer(Message msg) {
-		// TODO Auto-generated method stub
 		IBattleField RMIServer = null;
 		String urlServer = new String("rmi://" + battleServerLocation + "/"
 				+ battleServer);
@@ -77,7 +76,6 @@ public class PlayerRunner implements IRunner {
 
 	@Override
 	public void sendMessageToClient(Message msg) {
-		// TODO Auto-generated method stub
 		IPlayerController RMIServer = null;
 		String urlServer = new String("rmi://"
 				+ clients.get(msg.getRecipient()) + "/" + msg.getRecipient());
@@ -107,7 +105,6 @@ public class PlayerRunner implements IRunner {
 						+ msg.getMiddlemanPort());
 				totalNumberOfMaxClients += 1;
 			} catch (ServerNotActiveException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			sendMessageToServer(msg);
