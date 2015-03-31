@@ -2,10 +2,10 @@
 
 %describe the DAS application (1 paragraph) and its requirements (1 paragraph per each of consistency, scalability, fault - tolerance, and performance ).
 
-The Dragon Arena System (DAS) is a online warfare game of WantGame BV between human players and computer controlled dragons.
-The game consist of a battlefield of 25x25 on which players and dragons reside.
+The Dragon Arena System (DAS) is an online warfare game of WantGame BV between human players and computer controlled dragons.
+The game consists of a battlefield of 25x25 squares on which players and dragons reside.
 The goal of the game for the players is to kill all the dragons and survive (vice versa for the dragons).
-WantGame want the game to be able to support many concurrent users and has therefore decided to invest and design a distributed game engine which needs to be consistent, scalable and fault-tolerant. 
+WantGame want the game to be able to support many concurrent users and has therefore decided to invest in, and design a distributed game engine which needs to be consistent, scalable and fault-tolerant. 
 
 As stated, the game needs to support multiple concurrent users playing on the same battlefield. 
 This means that the system must be able to scale up in order to handle all these users and the requests they make to the servers. 
@@ -16,5 +16,5 @@ Multiple nodes means that different players may be performing actions which impa
 In order to detect this, the system needs to be able to detect whether another players action is still valid. 
 A possible solution for this problem may be to use causal ordering for player actions.
 
-Last but mot least, players must be able to continue their game even if some server crashes. 
-A possible approach may be, that there needs to be at least more than one copy of a running instance of the game to make sure that clients can silently reconnect to another server without disrupting the users game experience. 
+Last but not least, players must be able to continue their game even if some server crashes. 
+A possible approach to address this issue may lie in concurrent copies. This ensures that there is at least more than one copy of a running instance of the game to make sure that clients can silently reconnect to another server without disrupting the users game experience. 
