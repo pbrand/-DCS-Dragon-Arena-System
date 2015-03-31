@@ -12,5 +12,9 @@ public class Common {
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
 		return sb.toString();
 	}
+	
+	public static String getFormatedTime(long time) {
+		return ((time) / (1000 * 60)) % 60 + " m " + ((time) / (1000)) % 60 + " s";
+	}
 
 }

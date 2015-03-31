@@ -12,7 +12,6 @@ import common.Enums.Direction;
 import common.Enums.UnitType;
 import common.IPlayerController;
 import common.IRunner;
-import common.IUnit;
 import common.Log;
 import common.Message;
 import common.MessageRequest;
@@ -26,8 +25,26 @@ public class PlayerRunner implements IRunner {
 	private HashMap<String, String> clients;
 	private int battleFieldMapHeight = 0;
 	private int battleFieldMapWidth = 0;
+	
+	/**
+	 * Metrics
+	 */
+	private int totalMessagesSend;
+	private int totalMessagesSendToServer;
+	private int totalMessagesSendToClient;
+	private int totalMessagesReceived;
+	private int totalMessagesFailedToSend;
+	private int totalMessagesFailedSendToServer;
+	private int totalMessagesFailedSendToClient;
+	private int totalMessagesFailedToReceive;
+	private int totalChangeRequestsOfMainServer;
+	private int totalNumberOfMaxClients;
+	
+	private long startTime;
+	private long endTime;
 
 	public PlayerRunner(String battleServerLocation, String battleServer) {
+		this.startTime = System.currentTimeMillis();
 		this.clients = new HashMap<String, String>();
 		this.battleServerLocation = battleServerLocation;
 		this.battleServer = battleServer;
@@ -44,12 +61,14 @@ public class PlayerRunner implements IRunner {
 		try {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			RMIServer.receiveMessage(msg);
-
+			totalMessagesSend += 1;
+			totalMessagesSendToServer += 1;
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			if (changeBackupToMainServer()) {
 				sendMessageToServer(msg);
 			} else {
 				e.printStackTrace();
+				totalMessagesFailedSendToServer += 1;
 			}
 		}
 	}
@@ -66,20 +85,25 @@ public class PlayerRunner implements IRunner {
 			RMIServer = (IPlayerController) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
-
+			totalMessagesSend += 1;
+			totalMessagesSendToClient += 1;
 		} catch (Exception e) {
 			e.printStackTrace();
+			totalMessagesFailedToSend += 1;
+			totalMessagesFailedSendToClient += 1;
 		}
 	}
 
 	@Override
 	public void receiveMessage(Message msg) {
 		Log.log(myAddress, "Received: " + msg);
+		totalMessagesReceived += 1;
 		switch (msg.getRequest()) {
 		case MessageRequest.spawnUnit:
 			try {
 				clients.put(msg.getSender(), RemoteServer.getClientHost() + ":"
 						+ msg.getMiddlemanPort());
+				totalNumberOfMaxClients += 1;
 			} catch (ServerNotActiveException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -141,13 +165,16 @@ public class PlayerRunner implements IRunner {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			this.battleFieldMapWidth = RMIServer.getMapWidth();
+			totalMessagesReceived += 1;
 			this.battleFieldMapHeight = RMIServer.getMapHeight();
+			totalMessagesReceived += 1;
 
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			if (changeBackupToMainServer()) {
 				getBattleFieldInfo();
 			} else {
 				e.printStackTrace();
+				totalMessagesFailedToReceive += 1;
 			}
 		}
 	}
@@ -162,6 +189,7 @@ public class PlayerRunner implements IRunner {
 			RMIServer = (IBattleField) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			pos = RMIServer.getPosition(id);
+			totalMessagesReceived += 1;
 			int targetX = pos[0];
 			int targetY = pos[1];
 			switch (direction) {
@@ -237,6 +265,7 @@ public class PlayerRunner implements IRunner {
 				moveUnit(id, direction);
 			} else {
 				e.printStackTrace();
+				totalMessagesFailedToReceive += 1;
 			}
 		}
 	}
@@ -250,10 +279,12 @@ public class PlayerRunner implements IRunner {
 	public void registerWithServer(String player, String address)
 			throws RemoteException {
 		this.clients.put(player, address);
+		totalNumberOfMaxClients += 1;
 
 	}
 
 	private synchronized boolean changeBackupToMainServer() {
+		totalChangeRequestsOfMainServer += 1;
 		if (notifyBackupToBecomeMain()) {
 			this.battleServerLocation = new String(
 					this.backupBattleServerLocation);
@@ -291,4 +322,24 @@ public class PlayerRunner implements IRunner {
 	public void setMyAddress(String myAddress) {
 		this.myAddress = myAddress;
 	}
+	
+	public String getMetrics() {
+		this.endTime = System.currentTimeMillis();
+		String res = "\n";
+		res += ("[H] Total Number of Clients ever Connected: " + totalNumberOfMaxClients + "\n");
+		res += ("[H] Total Number of Clients at the end: " + clients.size() + "\n");
+		res += ("[H] Total Messages Send: " + totalMessagesSend + "\n");
+		res += ("[H] Total Messages Send to Client: " + totalMessagesSendToClient + "\n");
+		res += ("[H] Total Messages Send to Server: " + totalMessagesSendToServer + "\n");
+		res += ("[H] Total Messages Received: " + totalMessagesReceived + "\n");
+		res += ("[H] Total Messages Failed To Send: " + totalMessagesFailedToSend + "\n" );
+		res += ("[H] Total Messages Failed To Send to Client: " + totalMessagesFailedSendToClient + "\n" );
+		res += ("[H] Total Messages Failed To Send to Server: " + totalMessagesFailedSendToServer + "\n" );
+		res += ("[H] Total Messages Failed To Receive: " + totalMessagesFailedToReceive + "\n" );
+		res += ("[H] Total CHangerequests of Main Server: " + totalChangeRequestsOfMainServer + "\n" );
+		res += ("[H] Runtime: " + common.Common.getFormatedTime(endTime - startTime) + "\n");
+		
+		return res;
+	}
+	
 }

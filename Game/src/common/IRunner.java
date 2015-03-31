@@ -18,5 +18,7 @@ public interface IRunner extends Remote {
 	public boolean setBackupServerLocation(String serverLocation) throws RemoteException;
 	
 	public void setMyAddress(String address) throws RemoteException;
+	
+	public String getMetrics() throws RemoteException;
 
 }

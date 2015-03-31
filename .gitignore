@@ -220,3 +220,4 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 Game/log.txt
+Game/log_metric.txt

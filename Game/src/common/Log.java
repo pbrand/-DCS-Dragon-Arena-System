@@ -13,6 +13,13 @@ public class Log {
 		System.out.println(string);
 		saveLog(file, string);
 	}
+	
+	public static void logMetric(String tag, String text) {
+		String file = "log_metric.txt";
+		String string = "[" + tag + "]: " + text;
+		System.out.println(string);
+		saveLog(file, string);
+	}
 
 	private static void saveLog(String file, String text) {
 		try (PrintWriter out = new PrintWriter(new BufferedWriter(
