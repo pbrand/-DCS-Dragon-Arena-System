@@ -39,8 +39,6 @@ public class Main {
 				battlefield = BattleField.createBackupBattleField();
 			} else {
 				battlefield = BattleField.getBattleField();
-				String[] args2 = {"6116", "backup"};
-				//Main.main(args2);
 			}
 			
 			stub = (IBattleField) UnicastRemoteObject.exportObject(battlefield,
@@ -83,6 +81,9 @@ public class Main {
 						if (res.length > 0 && res[0].equals("setbackup")) {
 							setBackup(address, res[1]);								
 						}
+						if (res.length > 0 && res[0].equals("q")) {
+							saveMetrics(address);
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}					
@@ -99,6 +100,15 @@ public class Main {
 		try {
 			IBattleField RMIServer = (IBattleField) Naming.lookup("rmi://" +  mainServer + "/" + serverID);
 			RMIServer.setBackupAddress(backup + "/" + serverID);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace(); 
+		} 
+	}
+	
+	private static void saveMetrics(String mainServer) {
+		try {
+			IBattleField RMIServer = (IBattleField) Naming.lookup("rmi://" +  mainServer + "/" + serverID);
+			RMIServer.saveMetrics();
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			e.printStackTrace(); 
 		} 

@@ -54,9 +54,24 @@ public class BattleField implements IBattleField {
 	private boolean mapChanged;
 	private boolean helpersChanged;
 	
+	/**
+	 * Metrics
+	 */
+	private boolean firstWrite = true;
+	private int totalMessagesSend;
+	private int totalMessagesReceived;
+	private int totalMessagesFailedToSend;
+	private int totalMessagesFailedToReceive;
+	private int totalNumberOfAttemptedBackupUpdates;
+	private int totalNumberOfSuccessfullBackupUpdates;
+	private int totalNumberOfFailedBackupUpdates;
+	private int totalNumberOfDisconnectedHelpers;
+	
+	private long startTime;
+	private long endTime;
+	
 	//private static final Logger logger = LogManager.getLogger(BattleField.class);
 
-	// private String serverLocation;
 
 	/**
 	 * Initialize the battlefield to the specified size
@@ -68,7 +83,7 @@ public class BattleField implements IBattleField {
 	 * @throws RemoteException
 	 */
 	private BattleField(boolean isBackup) throws RemoteException {
-				
+		this.startTime = System.currentTimeMillis();	
 	}
 	
 	private BattleField() throws RemoteException {
@@ -139,9 +154,12 @@ public class BattleField implements IBattleField {
 			RMIServer = (IRunner) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
+			
+			totalMessagesSend += 1;
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			totalMessagesFailedToSend += 1;
 		}
 
 	}
@@ -168,7 +186,9 @@ public class BattleField implements IBattleField {
 		// TODO Auto-generated method stub
 		String from = msg.getSender();
 		String request = msg.getRequest();
-		
+
+		totalMessagesReceived += 1;
+
 		log("Message received from: " + msg.getSender()
 				+ ", request: " + request);
 
@@ -589,6 +609,7 @@ public class BattleField implements IBattleField {
 			// e.printStackTrace();
 			helpers.remove(helper);
 			helpersChanged = true;
+			totalNumberOfDisconnectedHelpers += 1;
 			printHelpers();
 
 			if (helpers.size() == 0) {
@@ -701,15 +722,19 @@ public class BattleField implements IBattleField {
 			return;
 		}
 		
+		totalNumberOfAttemptedBackupUpdates += 1;
+		
 		try {
 			boolean updated = RMIServer.updateBackup(snap);
 			if (updated) {
 				unitsChanged = false;
 				mapChanged = false;
 				helpersChanged = false;
+				totalNumberOfSuccessfullBackupUpdates += 1;
 			}
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			totalNumberOfFailedBackupUpdates += 1;
+			e.printStackTrace();			
 		}
 
 	}
@@ -720,13 +745,11 @@ public class BattleField implements IBattleField {
 			public void run() {
 				log("DragonRunner running");
 				int dragons = numberOfDragons();
-				int players = numberOfPlayers();
 				while (true) {
 					try {
 						Thread.sleep(500);	
 						dragons = numberOfDragons();
-						players = numberOfPlayers();
-						if (dragons < 1/*NR_OF_DRAGONS*/) {							
+						if (dragons < NR_OF_DRAGONS) {							
 							spawnDragon();							
 						} 
 						
@@ -739,11 +762,7 @@ public class BattleField implements IBattleField {
 		Thread thread = new Thread(myRunnable);
 		thread.start();
 	}
-	
-	private int numberOfPlayers() {		
-		return units.size();
-	}
-	
+		
 	private int numberOfDragons() {
 		return dragons.size();
 	}
@@ -831,12 +850,16 @@ public class BattleField implements IBattleField {
 	}
 
 	@Override
-	public boolean promoteBackupToMain() throws RemoteException {
-		isBackup = false;
-		log("Backup server promoted to main server");
-		initHelperChecker();
-		initBackupService();
-		return true;
+	public boolean promoteBackupToMain() throws RemoteException {		
+		if (!isBackup) {
+			isBackup = false;
+			log("Backup server promoted to main server");
+			initHelperChecker();
+			initBackupService();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public boolean isBackup() {
@@ -849,5 +872,57 @@ public class BattleField implements IBattleField {
 	
 	private void log(String text) {
 		Log.log(myAddress, text);
+	}
+	
+	public void saveMetrics() {
+		this.endTime = System.currentTimeMillis();
+		logMetric("Total Messages Send: " + totalMessagesSend);
+		logMetric("Total Messages Received: " + totalMessagesReceived);
+		logMetric("Total Messages Failed To Send: " + totalMessagesFailedToSend );
+		logMetric("Total Messages Failed To Receive: " + totalMessagesFailedToReceive );
+		logMetric("Total Number of disconnected helpers: " + totalNumberOfDisconnectedHelpers );
+		
+		logMetric("Total Attempted backup updates: " + totalNumberOfAttemptedBackupUpdates );
+		logMetric("Total Successfull backup updates: " + totalNumberOfSuccessfullBackupUpdates );
+		logMetric("Total Failed backup updates: " + totalNumberOfFailedBackupUpdates );
+		
+		logMetric("Runtime: " + common.Common.getFormatedTime(endTime - startTime));
+		
+		saveHelperMetrics();
+	}
+	
+	private void saveHelperMetrics() {
+		Iterator<String> iterator = helpers.keySet().iterator();
+		while (iterator.hasNext()) {
+			String key = iterator.next().toString();
+			logMetric("H: " + helpers.get(key) + "/" + key);
+			logMetric(this.getHelperMetrics(key));
+		}
+	}
+	
+	private String getHelperMetrics(String helper) {
+		String res = "";
+		
+		IRunner RMIServer = null;
+		String urlServer = new String("rmi://" + helpers.get(helper) + "/"
+				+ helper);
+
+		try {
+			RMIServer = (IRunner) Naming.lookup(urlServer);
+			res = RMIServer.getMetrics();
+			return res;
+		} catch (Exception e) {
+			// e.printStackTrace();
+		}
+		
+		return res;
+	}
+	
+	private void logMetric(String text) {
+		if (firstWrite) {
+			Log.logMetric(myAddress, "\n ################ \n");
+			firstWrite = false;
+		}
+		Log.logMetric(myAddress, text);
 	}
 }

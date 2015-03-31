@@ -27,11 +27,13 @@ public class ClientMain {
 		IPlayerController stub = null;
 		try {
 			String playerName = null;
+			double lifespan = Integer.MAX_VALUE;
 
 			if (args.length < 2) {
 				playerName = "p_" + Common.randomString(10);
 			} else {
 				playerName = args[1];
+				lifespan = Double.parseDouble(args[2]);
 			}
 
 			String serverID = playerName;
@@ -55,7 +57,7 @@ public class ClientMain {
 			log(playerName, "host: " + helper_host + ":" + helper_port);
 
 			player = new PlayerController(playerName, helper_host, helper_port,
-					battle_helper, battleServerLocation, battleServer, Double.parseDouble(args[2]));
+					battle_helper, battleServerLocation, battleServer, lifespan);
 
 			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
 					0);
