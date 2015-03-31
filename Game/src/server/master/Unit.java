@@ -14,6 +14,8 @@ public abstract class Unit implements Serializable, IUnit {
 
 	// Attack points
 	protected int attackPoints;
+	
+	protected String unitID;
 		
 	/**
 	 * 
@@ -37,9 +39,6 @@ public abstract class Unit implements Serializable, IUnit {
 
 		if (hitPoints > maxHitPoints)
 			hitPoints = maxHitPoints;
-
-//		if (hitPoints <= 0)
-//			removeUnit(x, y);
 	}
 
 	public void setPosition(int x, int y) {
@@ -83,22 +82,9 @@ public abstract class Unit implements Serializable, IUnit {
 	public int getY() {
 		return this.y;
 	}
-	
-	@Override
-	public void dealDamage(int x, int y, int damage) {
-		// TODO Auto-generated method stub
-		
-	}
 
-	@Override
-	public void healDamage(int x, int y, int healed) {
-		// TODO Auto-generated method stub
-		
-	}	
-
-	public void disconnect() {
-		// TODO Auto-generated method stub
-		
+	public String getUnitID() {
+		return unitID;
 	}
 
 }

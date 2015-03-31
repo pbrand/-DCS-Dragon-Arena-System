@@ -12,7 +12,6 @@ import common.Enums.Direction;
 import common.Enums.UnitType;
 import common.IPlayerController;
 import common.IRunner;
-import common.IUnit;
 import common.Log;
 import common.Message;
 import common.MessageRequest;
@@ -97,18 +96,18 @@ public class PlayerRunner implements IRunner {
 			sendMessageToClient(msg);
 			break;
 		case MessageRequest.getTargets:
-			msg.put("playerID", msg.getSender());
+			msg.put("unitID", msg.getSender());
 			sendMessageToServer(msg);
 			break;
 		case MessageRequest.returnTargets:
 			sendMessageToClient(msg);
 			break;
 		case MessageRequest.healDamage:
-			msg.put("playerID", msg.getSender());
+			msg.put("unitID", msg.getSender());
 			sendMessageToServer(msg);
 			break;
 		case MessageRequest.dealDamage:
-			msg.put("playerID", msg.getSender());
+			msg.put("unitID", msg.getSender());
 			sendMessageToServer(msg);
 			break;
 		default:
@@ -120,7 +119,7 @@ public class PlayerRunner implements IRunner {
 		// Send disconnect message to the main server.
 		Message msg = new Message(battleServer);
 		msg.setRequest(MessageRequest.disconnectUnit);
-		msg.put("playerID", id);
+		msg.put("unitID", id);
 		this.sendMessageToServer(msg);
 	}
 
@@ -204,33 +203,13 @@ public class PlayerRunner implements IRunner {
 				// square
 				msg = new Message(battleServer);
 				msg.setRequest(MessageRequest.moveUnit);
-				msg.put("playerID", id);
+				msg.put("unitID", id);
 				msg.put("x", targetX);
 				msg.put("y", targetY);
 				this.sendMessageToServer(msg);
 				break;
 			default:
 				break;
-//			case player:
-//				// There is a player in the square, attempt a healing
-//				//this.healDamage(id, targetX, targetY);
-//				msg = new Message(battleServer);
-//				msg.setRequest(MessageRequest.healDamage);
-//				msg.put("playerID", id);
-//				msg.put("x", targetX);
-//				msg.put("y", targetY);
-//				this.sendMessageToServer(msg);
-//				break;
-//			case dragon:
-//				// There is a dragon in the square, attempt a dragon slaying
-//				//this.dealDamage(id, targetX, targetY);
-//				msg = new Message(battleServer);
-//				msg.setRequest(MessageRequest.dealDamage);
-//				msg.put("playerID", id);
-//				msg.put("x", targetX);
-//				msg.put("y", targetY);
-//				this.sendMessageToServer(msg);
-//				break;
 			}
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			if (changeBackupToMainServer()) {
@@ -291,4 +270,5 @@ public class PlayerRunner implements IRunner {
 	public void setMyAddress(String myAddress) {
 		this.myAddress = myAddress;
 	}
+
 }
