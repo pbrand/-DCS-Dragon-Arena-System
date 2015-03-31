@@ -222,3 +222,5 @@ pip-log.txt
 report/main.pdf
 Game/log_metric.txt
 Game/log.txt
+Game/lib/log4j-api-2.2.jar
+Game/lib/log4j-core-2.2.jar
