@@ -20,6 +20,7 @@ local.properties
 *.pdf
 *.synctex.gz
 *.class
+Game/log/*.*
 
 # External tool builders
 .externalToolBuilders/
@@ -224,3 +225,4 @@ Game/log_metric.txt
 Game/log.txt
 Game/lib/log4j-api-2.2.jar
 Game/lib/log4j-core-2.2.jar
+report/main.tex

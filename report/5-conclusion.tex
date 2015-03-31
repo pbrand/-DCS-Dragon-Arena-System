@@ -1,1 +1,7 @@
 \section{Conclusion}
+The implementation of a distributed game is quite a challenge, certainly if you're a beginner in the Distributed Systems field.
+It is safe to conclude that in this case the helper servers are not of much use and that the use of multiple battlefield server could have been better.
+However, this does not mean that the current design is all that bad, the experiments do show that the current design does scale and is able to support multiple concurrent users.
+Clients may also recover from helper server crashes by just reconnecting to a different one and the main server may be replaces by a backup server if it crashes, which makes the the system fault-tolerance to a certain level.
+
+  

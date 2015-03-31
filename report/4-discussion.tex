@@ -1,1 +1,40 @@
 \section{Discussion}
+As stated earlier, the implementation of the game did not progress as planned.
+In the beginning of this project, it was decided to have one main server and multiple helper server in order to take off some workload of the main server and in order to minimize the synchronization between servers.
+This sounded pretty awesome and doable for the implementation of this game.
+However, at a certain point in the implementation it came to our knowledge that this is actually not such a good idea at all.
+At least not in this case for the implementation of the Dragon Arena System.
+
+In order for the helper servers to take load of from the main and perform computation on behalf of the main server, the helper servers had to do way more messaging in order to make a single action happen than was expected.
+A possible solution for this would be to have multiple servers with battlefield to which users can connect.
+The battlefield can then handle the actions of the clients by himself, this would eliminate the need for a helper server, thus eliminating a layer of communication and therefore making the game a bit faster (at least thats what we expect). 
+This also means that there needs to be some sort of synchronization between the different main servers.
+A possible way to do so: check if the move is possible on all the servers, then lock the area which needs to be updated, and then propagate the update further to other battlefields and release the area.
+Another positive side of this solution is that their is no extra backup server needed, because there are multiple servers with the same battlefield running which could be used if another server crashes.
+
+The current implementation of the DAS does work, however one big trade-off had to be made in order to let the game function correctly.
+As stated earlier, the helper server where needed in order to perform computation. 
+This was causing an action to wait for a lot of messages before actually performing the action.
+To reduce this number of messaging, a part of the computation was moved back to the main server.
+This made the system less distributed than we actually wanted it to be.
+
+\subsection{The use of a Distributed DAS}
+The main question still is, if it is useful for WantGame BV to use a distributed system for the game.
+Even though the implementation did not go as planned, the game still performs well under good conditions.
+A different architecture as proposed earlier in this section would be better of course, but this does not mean that the current implementation does not work at all.
+The system was also tested with a 100 players and 20 dragons and still performed very well.
+Also, the number of failures was pretty low and switching between helper server when one of them failing did not cause any major problems.
+However, the system was not tested for a number of players way larger than 100.
+So it cannot be said for sure that the game will still perform well with when the number of players is higher than 100.
+
+\subsection{Confession}
+In the final implementation of the game, the backup service for the main server had to be disabled (partially).
+The backup server is able to run but not keep track of the map and the units. 
+When the main server goes down, the backup server will start a clean battlefield instead of a restored version of the battlefield.
+In order to support the Dragons to be able to send messages it was made a remote object and registered to the RMI registry on the main servers.
+This however caused the backup to fail when trying to backup the a spawned Dragon object, because it was bound on the main server.
+In order to fix this, a Dragon controller had to be make in order to control a Dragon. 
+Then this Dragon controller should have been bound instead of the Dragon object itself, therefore making it possible to backup the Dragon objects.
+
+
+

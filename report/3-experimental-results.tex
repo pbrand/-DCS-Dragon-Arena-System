@@ -2,7 +2,7 @@
 Unfortunately we were not able to utilize the DAS-4 system nor Amazon EC2, thus we were not able to run our project fully distributed, hence no real world tests could be done. Therefore we decided to spend this chapter on how we wish we could have performed the experiments if these implementation problems hadn't delayed us this much. However we were able to collect some primitive data from some local experiments. These results will be discussed here as well.
 
 \subsection{Setup}
-For this experiment, the DAS-4 should be initialised with 5 compute-nodes. 
+For this experiment, the DAS-4 should be initialized with 5 compute-nodes. 
 One compute node should host the main server which initializes the battlefield. 
 Another compute node should initialize the backup for the main server (the backup server). 
 Another 2 nodes should be used as the helper servers which connect to the main server. 
@@ -12,7 +12,7 @@ Finally the last node can be used to instantiate 3 clients which connect to the 
 The purpose of causal consistency is to make sure that events that are causally related are actually ordered. 
 To measure this, it is necessary to assign a timestamp upon message creation. 
 Additionally, each message is provided with its own unique identifier. 
-Every message which is received should be stored in a list and assigned a timestamp which represents the time of receival.
+Every message which is received should be stored in a list and assigned a timestamp which represents the time of arrival.
 Whenever a new message is received, it's timestamps should be checked with the other timestamps of messages in the list in order to check causality. If the newly received message was sent before a message which has already been received, and these messages are causally related, then the causality constraint is certainly not met.
 In this project, a causal relationship is defined by: a certain unit \emph{A} performs an action which has a effect on the state of a certain unit \emph{B}, for instance if a player \emph{A} attacks a dragon \emph{B}.
 
@@ -26,17 +26,17 @@ This experiment should be performed several times in order to guarantee an unbia
 \subsection{Scalability and Performance Experiments}
 In order to test scalability it is important how scalable the helper servers are and how scalable the main server is. 
 First, to test the scalability of the helper servers, it is important to have just one variable in this test environment. 
-The variable for the sacalability of the helper server test lies in the amount of connected clients. 
+The variable for the scalability of the helper server test lies in the amount of connected clients. 
 Therefore we have one fixed main server and one helper server.
-The number of connected clients are increased per testrun. 
+The number of connected clients are increased per test run. 
 During the tests, the system of the helper server is monitored.
 Just like in the previous section, the messages and their timestamp are also recorded.
 For each test run, the average response time can be computed.
-Then, these response times can be compared wich eachother in order to check if an increase in clients has an impact on the response time of the server.
+Then, these response times can be compared which each other in order to check if an increase in clients has an impact on the response time of the server.
 If the response time dramatically increases, it is clear that the system is limited to the number of clients it can scale to. 
 This is also an indicator for the performance of the system.
-The memory and CPU usage should also be recorded  and compared with eachother for each test run in order to find the performance bottleneck. 
-The only contraint is, that the same hardware is used during every test run.
+The memory and CPU usage should also be recorded  and compared with each other for each test run in order to find the performance bottleneck. 
+The only constraint is, that the same hardware is used during every test run.
 
 It is also important to test how scalable the main server is. 
 As already stated, there is only one main server active, but the number of helper server may be increased.
@@ -44,10 +44,21 @@ This test will measure  the number of helper servers the main server can handle.
 The number of clients per helper server will be kept consistent for each test in this experiment, only the number of helper servers will be increased for each following test run.
 The same properties as in the scalability of the helper servers will be measured, but now for the main server.
 Instead of measuring the response time of messages between helper and client, the response time between helper and main server is measured.
-The CPU and memory usage are also recorded in order to find the perfomance bottleneck.
+The CPU and memory usage are also recorded in order to find the performance bottleneck.
 
 
 \subsection{Fault-tolerance Experiments}
+For fault tolerance the system also needs to be tested for both the helpers and the main server.
+To test the tolerance of the system when helpers crash, tests are run with multiple helpers server which are killed at random to simulate crashes.
+It is then possible to measure the number of messages which were tried to be send from the server and the number of messages which were actually send to a helper server after one was randomly killed.
+This tests needs to be run multiple times and the different outcomes should be compared in order to get a view of the number of failed send messages.
+If this value is low, it is probably safe to conclude that the helper server's fault-tolerance is acceptable.
+
+The same experiment should be done for measuring the tolerance of the main server.
+Instead of killing a helper, the main server should be killed, and then the backup server should take over the responsibilities of the main server.
+During this test, the number of missing messages (events) should be measured by taking the difference between the number of messages on the backup server and the main server, just like it is explained in the section about the scalability.
+Also, the number of failures after the backup server is promoted to main should be taken into account.
+The less failures after the restore, the better the recovery mechanism is.
 
 \subsection{What actually happened}
 % Setup
@@ -61,4 +72,23 @@ This means that battlefield needs to be somehow updated for every client in orde
 As stated in the previous chapter, the whenever a client sends a request, the required information is returned to the helper server the client is connected to.
 The helpers server itself does not maintain a local state of the game, but only computes results.
 However, the battlefield does maintain a state of the game. 
-Therefore it is important for the master server to maintain a correct state of the game.
+Therefore it is important for the master server to maintain a correct state of the game, which is done by sending messages whenever a Unit performs an action and also when certain parts of the game state need to be updated.
+
+As stated, the fancy measurements were not performed during this project. 
+However, we did collect some results for helpers and the main server.
+The number of messages which were send and received are logged and as well as the number of messages which were failed to send.
+These results are from tests in which the system is spawning the players by reading a file from the Game Trace Archive.
+No helper nodes were killed.
+It is still notable that there are still some messages failing to be send. However the number of messages which failed is really small.
+What is also observed, is that the failures in the helper servers is much lower that the failure in the main server.
+This is probably because the main server eventually receives much more requests than each helper server.
+
+For scalability tests we did not collect hard evidence. 
+However, there we did run some tests in which random helper servers were killed after which the clients reconnected to other helper servers.
+The clients were also able to continue playing the game.
+
+Another thing which can be noted from the metrics, is that the nodes are quite balanced.
+Even though the helper servers are chosen at random it still shows that every helper node has a fair amount of clients.
+During the tests there was no case in which almost all clients were connected to one server node and every other helper was doing almost nothing.
+And because these nodes are quite balanced, clients can reconnect faster to other helper nodes, simply because the number of helper nodes which need to reconnect is not large.
+

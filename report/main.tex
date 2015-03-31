@@ -23,14 +23,23 @@
 \thispagestyle{empty}
 
 \begin{abstract}
-a description of the problem, system description, analysis overview, and one
-main result. Size: one paragraph with at most 150 words.
+%a description of the problem, system description, analysis overview, and one main result. Size: one paragraph with at most 150 words.
+This report discusses the the process of implementing a distributed version of the Dragon Arena System (DAS) in order to be scalable and to support multiple concurrent users playing the game.
+The systems architecture will be discussed, as well as tests results and a discussions about the findings of the project.
 \end{abstract}
 
 
 \section{Introduction}
 
-(recommended size, including points 1 and 2: 1 page): describe the problem, the existing systems and/or tools about which you know (related work), the system you are about to implement, and the structure of the remainder of the article. Use one short paragraph for each.
+%(recommended size, including points 1 and 2: 1 page): describe the problem, the existing systems and/or tools about which you know (related work), the system you are about to implement, and the structure of the remainder of the article. Use one short paragraph for each.
+The Dragon Arena System (DAS) is an online warfare game of WantGame BV.
+WantGame BV wants to implement a distributed version of the DAS in order to be able to support multiple concurrent users and make the system scalable.
+The game will be implemented in Java and will use Remote Method Invocation (RMI) in order to support remote call to other servers.
+
+This report will first discuss a bit about the application itself and its background.
+Afterwards, the design and architecture of the proposed system which is going to be implemented will be discussed. 
+The various high level components of the game and how they communicate will be explained.
+In the third section the results of the various performed tests are presented and at last there will be a discussion about the findings of our work.
 
 \newpage
 
