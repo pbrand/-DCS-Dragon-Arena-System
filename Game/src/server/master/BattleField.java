@@ -254,81 +254,20 @@ public class BattleField implements IBattleField {
 			String id = (String) msg.get("playerID");
 			int x = units.get(id).getX();
 			int y = units.get(id).getY();
-			ArrayList<Unit> players = new ArrayList<Unit>();
-			ArrayList<Unit> dragons = new ArrayList<Unit>();
-//			int minX,maxX;
-//			int minY,maxY;
-//			if(x - Player.HEAL_RANGE < 0) {
-//				minX = 0;
-//			} 
-//			else {
-//				minX = x - Player.HEAL_RANGE;
-//			}
-//			if(y - Player.HEAL_RANGE < 0) {
-//				minY = 0;
-//			}
-//			else {
-//				minY = y - Player.HEAL_RANGE;
-//			}
-//			if(x + Player.HEAL_RANGE > this.MAP_WIDTH) {
-//				maxX = this.MAP_WIDTH;
-//			}
-//			else {
-//				maxX = x + Player.HEAL_RANGE;
-//			}
-//			if(y + Player.HEAL_RANGE > this.MAP_HEIGHT) {
-//				maxY = this.MAP_HEIGHT;
-//			}
-//			else {
-//				maxY = y + Player.HEAL_RANGE;
-//			}
-//			
-//			for(int i = minX; i < maxX; i++) {
-//				for(int j = minY; j < maxY; j++) {
-			int closestEnemyDistance = Integer.MAX_VALUE;
-			Unit closestDragon = null;
-			for(int i = 0; i < BattleField.MAP_WIDTH; i++) {
-				for(int j = 0; j < BattleField.MAP_HEIGHT; j++) {
-					if(i != x || j != y) {
-						try {
-							int distance = Math.abs(x-i) + Math.abs(y-j);
-							//System.out.println("distance: x "+Math.abs(x-i) +" y "+Math.abs(y-j));
-							//System.out.print("Map["+i+"]["+j+"] is: "+map[i][j]);
-							
-							if(this.getUnit(i, j) instanceof Player && (distance <= Player.HEAL_RANGE)) {
-								//System.out.print(" instanceof Player\n");
-								players.add(map[i][j]);
-							}
-							else if(this.getUnit(i, j) instanceof Dragon) {
-								//System.out.println(" instanceof Dragon\n");
-								if(distance <= Player.ATTACK_RANGE) {
-									dragons.add(map[i][j]);
-								}
-								if(distance < closestEnemyDistance) {
-									closestEnemyDistance = distance;
-									closestDragon = map[i][j];
-									System.out.println("closest enemy at: x "+i+" y "+j);
-								}
-							}
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}												
-					}
-	
-				}
+			
+			reply = new Message(from);		
+			if(getUnit(x,y) instanceof Player) {
+				reply.setMiddleman((String) msg.getMiddleman());
+				reply.setMiddlemanPort((int) msg.getMiddlemanPort()); 
+				reply.setRequest(MessageRequest.returnTargets);
+				reply = getPlayerTargetsMessage(x,y, reply);
 			}
-			reply = new Message(from);
-			reply.setMiddleman((String) msg.getMiddleman());
-			reply.setMiddlemanPort((int) msg.getMiddlemanPort()); 
-			reply.setRequest(MessageRequest.returnTargets);
-			reply.put("players", players);
-			reply.put("dragons", dragons);
-			reply.put("playerX", x);
-			reply.put("playerY", y);
-			reply.put("enemyX", closestDragon.getX());
-			reply.put("enemyY", closestDragon.getY());
+			else if(getUnit(x,y) instanceof Dragon) {
+				reply = getDragonTargetsMessage(x,y, reply);
+			}
 			break;
+			
+			
 		}
 		
 		}
@@ -339,6 +278,70 @@ public class BattleField implements IBattleField {
 
 	}
 
+	private Message getPlayerTargetsMessage(int x, int y, Message reply) {
+		ArrayList<Unit> players = new ArrayList<Unit>();
+		ArrayList<Unit> dragons = new ArrayList<Unit>();
+
+		int closestEnemyDistance = Integer.MAX_VALUE;
+		Unit closestDragon = null;
+		// We assume that HEAL_RANGE >= ATTACK_RANGE will always apply.
+		int minX = x - Player.HEAL_RANGE >= 0 ? x - Player.HEAL_RANGE : 0;
+		int maxX = x + Player.HEAL_RANGE <= BattleField.MAP_WIDTH ? x + Player.HEAL_RANGE : BattleField.MAP_WIDTH;
+		int minY = y - Player.HEAL_RANGE >= 0 ? y - Player.HEAL_RANGE : 0;
+		int maxY = y + Player.HEAL_RANGE <= BattleField.MAP_HEIGHT ? y + Player.HEAL_RANGE : BattleField.MAP_HEIGHT;
+		for(int i = minX; i < maxX; i++) {
+			for(int j = minY; j < maxY; j++) {
+				if(i != x || j != y) {
+					int distance = Math.abs(x-i) + Math.abs(y-j);
+					
+					if(this.getUnit(i, j) instanceof Player && (distance <= Player.HEAL_RANGE)) {
+						players.add(getUnit(i,j));
+					}
+					else if(this.getUnit(i, j) instanceof Dragon) {
+						if(distance <= Player.ATTACK_RANGE) {
+							dragons.add(getUnit(i,j));
+						}
+						if(distance < closestEnemyDistance) {
+							closestEnemyDistance = distance;
+							closestDragon = getUnit(i,j);
+						}
+					}												
+				}
+			}
+		}
+		
+		reply.put("players", players);
+		reply.put("dragons", dragons);
+		reply.put("playerX", x);
+		reply.put("playerY", y);
+		reply.put("enemyX", closestDragon.getX());
+		reply.put("enemyY", closestDragon.getY());
+		return reply;
+	}
+
+	private Message getDragonTargetsMessage(int x, int y, Message reply) {
+		ArrayList<Unit> players = new ArrayList<Unit>();
+		int minX = x - Dragon.ATTACK_RANGE >= 0 ? x - Dragon.ATTACK_RANGE : 0;
+		int maxX = x + Dragon.ATTACK_RANGE <= BattleField.MAP_WIDTH ? x + Dragon.ATTACK_RANGE : BattleField.MAP_WIDTH;
+		int minY = y - Dragon.ATTACK_RANGE >= 0 ? y - Dragon.ATTACK_RANGE : 0;
+		int maxY = y + Dragon.ATTACK_RANGE <= BattleField.MAP_HEIGHT ? y + Dragon.ATTACK_RANGE : BattleField.MAP_HEIGHT;
+		for(int i = minX; i < maxX; i++) {
+			for(int j = minY; j < maxY; j++) {
+				if(i != x || j != y) {
+					int distance = Math.abs(x-i) + Math.abs(y-j);
+					if(this.getUnit(i, j) instanceof Player) {
+						if(distance <= Dragon.ATTACK_RANGE) {
+							players.add(getUnit(i,j));
+						}
+					}												
+				}
+			}
+		}
+		
+		reply.put("players", players);
+		return reply;
+	}
+	
 	public int[] getAvailablePosition() {
 		int[] pos = null;
 

@@ -203,7 +203,7 @@ public class PlayerController implements IPlayerController {
 		sendMessage(attack);
 	}
 
-	private Message createDealDamageMessage(int x2, int y2) {
+	private Message createDealDamageMessage(int x, int y) {
 		Message msg = createMessage(battleServer);
 		msg.setRequest(MessageRequest.dealDamage);
 		msg.put("x", x);
