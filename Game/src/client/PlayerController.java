@@ -103,7 +103,7 @@ public class PlayerController implements IPlayerController {
 						boolean action = false;
 						if(players.size() != 0) {
 							for(IUnit target : players) {
-								if((double) target.getHitPoints() / (double) target.getMaxHitPoints() < 0.5) {
+								if(target.getHitPoints() > 0 && (double) target.getHitPoints() / (double) target.getMaxHitPoints() < 0.5) {
 									healDamage(target.getX(), target.getY());
 									action = true;
 									break;
@@ -186,6 +186,7 @@ public class PlayerController implements IPlayerController {
 			// Receive a message here?? (if hitpoints <= 0) -> then set running
 			// to false so that the mainloop quits.
 		}
+		System.out.println("Player: "+playerID+" has stopped running and requested disconnect.");
 	}
 
 	private void healDamage(int x, int y) {
@@ -319,6 +320,10 @@ public class PlayerController implements IPlayerController {
 				this.closestEnemy = true;
 			}
 			this.targets = true;
+			break;
+		case MessageRequest.gameOver:
+			this.running = false;
+			this.disconnect();
 			break;
 		default:
 			break;

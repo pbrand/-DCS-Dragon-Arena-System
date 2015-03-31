@@ -135,6 +135,9 @@ public class PlayerRunner implements IRunner {
 			msg.put("unitID", msg.getSender());
 			sendMessageToServer(msg);
 			break;
+		case MessageRequest.gameOver:
+			sendMessageToClient(msg);
+			break;
 		default:
 			break;
 		}

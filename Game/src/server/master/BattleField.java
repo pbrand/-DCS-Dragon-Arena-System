@@ -209,8 +209,14 @@ public class BattleField implements IBattleField {
 			break;
 		}
 		case MessageRequest.putUnit: {
-			this.putUnit((Unit) msg.get("unit"), (Integer) msg.get("x"),
-					(Integer) msg.get("y"));
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				this.putUnit((Unit) msg.get("unit"), (Integer) msg.get("x"),
+						(Integer) msg.get("y"));
+			}
+			else {
+				this.sendGameOverMessage(msg);
+			}
 			break;
 		}
 		case MessageRequest.getUnit: {
@@ -244,38 +250,31 @@ public class BattleField implements IBattleField {
 			break;
 		}
 		case MessageRequest.dealDamage: {
-			int x = (Integer) msg.get("x");
-			int y = (Integer) msg.get("y");
-			unit = this.getUnit(x, y);
-			if (unit != null) {
-				//unit.adjustHitPoints(-(Integer) msg.get("damage"));
-				System.out.println("Dragon id: "+(String) msg.get("unitID"));
-				unit.adjustHitPoints(-units.get((String) msg.get("unitID")).getAttackPoints());
-				unitsChanged = true;
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				int x = (Integer) msg.get("x");
+				int y = (Integer) msg.get("y");
+				this.dealdamage(x,y,msg);
+			 }
+			else {
+				this.sendGameOverMessage(msg);
 			}
-			/*
-			 * Copy the id of the message so that the unit knows what message
-			 * the battlefield responded to.
-			 */
 			break;
 		}
 		case MessageRequest.healDamage: {
-			int x = (Integer) msg.get("x");
-			int y = (Integer) msg.get("y");
-			unit = this.getUnit(x, y);
-			if (unit != null) {	
-				//unit.adjustHitPoints((Integer) msg.get("healed"));
-				unit.adjustHitPoints(units.get((String) msg.get("unitID")).getAttackPoints());
-				unitsChanged = true;
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				int x = (Integer) msg.get("x");
+				int y = (Integer) msg.get("y");
+				unit = this.getUnit(x, y);
+				if (unit != null) {	
+					unit.adjustHitPoints(units.get((String) msg.get("unitID")).getAttackPoints());
+					unitsChanged = true;
+				}
 			}
-			if (unit.getHitPoints() <= 0) {
-				disconnectUnit(unit.getUnitID());
-				mapChanged = true;
+			else {
+				this.sendGameOverMessage(msg);
 			}
-			/*
-			 * Copy the id of the message so that the unit knows what message
-			 * the battlefield responded to.
-			 */
 			break;
 		}
 		case MessageRequest.moveUnit: {
@@ -294,24 +293,30 @@ public class BattleField implements IBattleField {
 			break;
 		}
 		case MessageRequest.getTargets: {
-			String id = (String) msg.get("unitID");
-			if(units.get(id) == null) {
-				break;
-			}
-			int x = units.get(id).getX();
-			int y = units.get(id).getY();
-			
-			reply = new Message(from);	
-			reply.setRequest(MessageRequest.returnTargets);
-			System.out.println("From dragon: "+from);
-			if(getUnit(x,y) instanceof Player) {
-				reply.setMiddleman((String) msg.getMiddleman());
-				reply.setMiddlemanPort((int) msg.getMiddlemanPort()); 
-				reply = getPlayerTargetsMessage(x,y, reply);
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				String id = (String) msg.get("unitID");
+				if(units.get(id) == null) {
+					break;
+				}
+				int x = units.get(id).getX();
+				int y = units.get(id).getY();
+				
+				reply = new Message(from);	
+				reply.setRequest(MessageRequest.returnTargets);
+				System.out.println("From dragon: "+from);
+				if(getUnit(x,y) instanceof Player) {
+					reply.setMiddleman((String) msg.getMiddleman());
+					reply.setMiddlemanPort((int) msg.getMiddlemanPort()); 
+					reply = getPlayerTargetsMessage(x,y, reply);
+				}
+				else {
+					reply = getDragonTargetsMessage(x,y, reply);
+					replyToDragon = true;
+				}
 			}
 			else {
-				reply = getDragonTargetsMessage(x,y, reply);
-				replyToDragon = true;
+				this.sendGameOverMessage(msg);
 			}
 			break;
 		}
@@ -330,7 +335,42 @@ public class BattleField implements IBattleField {
 
 	}
 
-	private Message getPlayerTargetsMessage(int x, int y, Message reply) {
+	private void sendGameOverMessage(Message msg) {
+		String id = (String) msg.get("unitID");
+		log("Game over request to: "+ id);
+		int x = units.get(id).getX();
+		int y = units.get(id).getY();
+		
+		Message reply = new Message(id);	
+		reply.setRequest(MessageRequest.gameOver);
+		if(getUnit(x,y) instanceof Player) {
+			reply.setMiddleman((String) msg.getMiddleman());
+			reply.setMiddlemanPort((int) msg.getMiddlemanPort());
+			sendMessage(reply);
+		}
+		else {
+			String address = myAddress.split("/")[0];
+			reply.setMiddleman(reply.getRecipient());
+			reply.setMiddlemanPort(Integer.parseInt(address.split(":")[1]));
+			sendMessageToDragon(reply);
+		}
+	}
+
+	private void dealdamage(int x, int y, Message msg) {
+		Unit unit = this.getUnit(x, y);
+		if (unit != null) {
+			unit.adjustHitPoints(-units.get((String) msg.get("unitID")).getAttackPoints());
+			unitsChanged = true;
+			
+			if (unit.getHitPoints() <= 0) {
+				//removeUnit(unit.getUnitID());
+				
+				sendGameOverMessage(msg);
+			}
+		}
+	}
+
+	private synchronized Message getPlayerTargetsMessage(int x, int y, Message reply) {
 		ArrayList<Unit> players = new ArrayList<Unit>();
 		ArrayList<Unit> dragons = new ArrayList<Unit>();
 
@@ -369,7 +409,7 @@ public class BattleField implements IBattleField {
 		return reply;
 	}
 
-	private Message getDragonTargetsMessage(int x, int y, Message reply) {
+	private synchronized Message getDragonTargetsMessage(int x, int y, Message reply) {
 		ArrayList<Unit> players = new ArrayList<Unit>();
 		int minX = x - Dragon.ATTACK_RANGE >= 0 ? x - Dragon.ATTACK_RANGE : 0;
 		int maxX = x + Dragon.ATTACK_RANGE <= BattleField.MAP_WIDTH ? x + Dragon.ATTACK_RANGE : BattleField.MAP_WIDTH;
@@ -513,22 +553,31 @@ public class BattleField implements IBattleField {
 			log("Unit with id: "+id+" could not be removed, no unit found");
 			return false; // There was no unit here to remove
 		}
-		map[unitToRemove.getX()][unitToRemove.getY()] = null;
-		units.remove(unitToRemove);
-		unitsChanged = true;
-		mapChanged = true;
-		return true;
+		int x = unitToRemove.getX();
+		int y = unitToRemove.getY();
+		map[x][y] = null;
+		Unit removed = units.remove(unitToRemove);
+		
+		if(removed == null && map[x][y] == null) {
+			unitsChanged = true;
+			mapChanged = true;
+			return true;
+		}
+		else{
+			return false;
+		}
 	}	
 	
-	private synchronized void disconnectUnit(String id) {
-		if(removeUnit(id)) {
+	private void disconnectUnit(String id) {
+		boolean removed = removeUnit(id);
+		if(removed) {
 			log("Unit with id: "+id+" has disconnected.");
 		}
 		else {
 			log("Unit with id:"+id+" could not be disconnected.");
 		}
 	}
-
+	
 	/**
 	 * Get a unit from a position.
 	 * 
@@ -539,7 +588,7 @@ public class BattleField implements IBattleField {
 	 * @return the unit at the specified position, or return null if there is no
 	 *         unit at that specific position.
 	 */
-	public Unit getUnit(int x, int y) {
+	public synchronized Unit getUnit(int x, int y) {
 		assert x >= 0 && x < map.length;
 		assert y >= 0 && x < map[0].length;
 
@@ -753,7 +802,7 @@ public class BattleField implements IBattleField {
 							spawnDragon();							
 						} 
 						
-					} catch (InterruptedException e) {
+					} catch (InterruptedException e) {	
 						e.printStackTrace();
 					}
 				}

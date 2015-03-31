@@ -26,7 +26,7 @@ public class Dragon extends Unit implements Runnable {
 	 */
 	private int timeBetweenTurns;
 	private boolean running;
-	private ArrayList<Unit> players;
+	private ArrayList<IUnit> players;
 	private boolean targets;
 	private String serverAddress; 
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
@@ -94,10 +94,11 @@ public class Dragon extends Unit implements Runnable {
 				Thread.currentThread().sleep((int)(timeBetweenTurns * 500/* * GameState.GAME_SPEED*/));
 
 				/* Stop if the dragon runs out of hitpoints */
-				if (getHitPoints() <= 0) {
-					this.disconnect();
-					break;
-				}
+//				if (getHitPoints() <= 0) {
+//					this.disconnect();
+//					this.running = false;
+//					break;
+//				}
 
 				// Decide what players are near
 				this.requestTargets();
@@ -117,13 +118,13 @@ public class Dragon extends Unit implements Runnable {
 				if (players == null || players.size() == 0) {
 					continue; // There are no players to attack
 				}
-				Unit playerToAttack = players.get( (int)(Math.random() * players.size()) );
+				IUnit playerToAttack = players.get( (int)(Math.random() * players.size()) );
 			
 			
 				// Attack the player
 				this.dealDamage(playerToAttack.getX(), playerToAttack.getY());
 				
-			} catch (InterruptedException e) {
+			} catch (InterruptedException | RemoteException e) {
 				e.printStackTrace();
 			}
 		}
@@ -150,8 +151,13 @@ public class Dragon extends Unit implements Runnable {
 		// Update somethings
 		switch (msg.getRequest()) {
 		case MessageRequest.returnTargets:
-			this.players = (ArrayList<Unit>) msg.get("players");
+			this.players = (ArrayList<IUnit>) msg.get("players");
 			this.targets = true;
+			break;
+		case MessageRequest.gameOver:
+			System.out.println("\n***************************\n**      DRAGON: "+this.unitID+" SHOULD DISCONNECT!!!!!!!!!!!! **\n ********************************\n");
+			this.running = false;
+			this.disconnect();
 			break;
 		default:
 			break;
@@ -201,6 +207,7 @@ public class Dragon extends Unit implements Runnable {
 	private Message createDisconnectMessage() {
 		Message msg = createMessage();
 		msg.setRequest(MessageRequest.disconnectUnit);
+		msg.put("unitID", unitID);
 		return msg;
 	}
 
