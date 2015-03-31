@@ -10,7 +10,7 @@ public class Message implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 8140103891165919475L;
-	private int messsageID;
+	private String messsageID;
 
 	private String sender;
 	// private int sendersPort = 1099;
@@ -26,9 +26,10 @@ public class Message implements Serializable {
 		updates = new ArrayList<String>();
 		values = new HashMap<String, Object>();
 		this.recipient = recipient;
+		this.messsageID = Common.randomString(20);
 	}
 
-	public Message(int messageID, String sender, String recipient,
+	public Message(String messageID, String sender, String recipient,
 			String request) {
 		updates = new ArrayList<String>();
 		this.sender = sender;
@@ -36,6 +37,7 @@ public class Message implements Serializable {
 		this.request = request;
 		this.recipient = recipient;
 		values = new HashMap<String, Object>();
+		this.messsageID = Common.randomString(200000000);
 	}
 
 	public void setSender(String sender) {
@@ -62,7 +64,7 @@ public class Message implements Serializable {
 		return updates;
 	}
 
-	public int getMesssageID() {
+	public String getMesssageID() {
 		return messsageID;
 	}
 
