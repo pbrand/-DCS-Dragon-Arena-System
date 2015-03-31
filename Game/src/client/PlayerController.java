@@ -38,6 +38,7 @@ public class PlayerController implements IPlayerController {
 	private int closestEnemyX;
 	private int closestEnemyY;
 	private double lifespan;
+	private boolean closestEnemy;
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
 	
@@ -115,7 +116,7 @@ public class PlayerController implements IPlayerController {
 						boolean action = false;
 						if(players.size() != 0) {
 							for(IUnit target : players) {
-								if((double) target.getHitPoints() / (double) target.getMaxHitPoints() < 0.5) {
+								if(target.getHitPoints() > 0 && (double) target.getHitPoints() / (double) target.getMaxHitPoints() < 0.5) {
 									healDamage(target.getX(), target.getY());
 									action = true;
 									break;
@@ -135,7 +136,8 @@ public class PlayerController implements IPlayerController {
 								this.dealDamage(dragonToSlay.getX(), dragonToSlay.getY());
 							}
 							// Move closer to a dragon.
-							else {
+							else if(this.closestEnemy){
+								this.closestEnemy = false;
 								// Randomly choose one of the four wind directions to move to if
 								// there are no units present	
 								Direction direction;
@@ -176,16 +178,20 @@ public class PlayerController implements IPlayerController {
 								
 								movePlayer(direction);
 							}
+							else{
+								Direction direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
+								movePlayer(direction);
+							}
 						}
 					}
 					
-				} catch (InterruptedException e) {
+				} catch (InterruptedException | RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				};
 
 			if (i > life) {
-				disconnectPlayer();
+				disconnect();
 				break;
 			}
 
@@ -193,6 +199,7 @@ public class PlayerController implements IPlayerController {
 			// Receive a message here?? (if hitpoints <= 0) -> then set running
 			// to false so that the mainloop quits.
 		}
+		System.out.println("Player: "+playerID+" has stopped running and requested disconnect.");
 	}
 
 	private void healDamage(int x, int y) {
@@ -229,7 +236,7 @@ public class PlayerController implements IPlayerController {
 		sendMessage(spawn);
 	}
 	
-	public void disconnectPlayer() {
+	public void disconnect() {
 		Message disconnect = createDisconnectMessage();
 		log(disconnect.toString());
 		sendMessage(disconnect);
@@ -304,6 +311,7 @@ public class PlayerController implements IPlayerController {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void receiveMessage(Message msg) {
 		// TODO Auto-generated method stub
@@ -322,9 +330,16 @@ public class PlayerController implements IPlayerController {
 			this.dragons = (ArrayList<IUnit>) msg.get("dragons");
 			this.x = (int) msg.get("playerX");
 			this.y = (int) msg.get("playerY");
-			this.closestEnemyX = (int) msg.get("enemyX");
-			this.closestEnemyY = (int) msg.get("enemyY");
+			if(msg.get("enemyX") != null && msg.get("enemyY") != null) {
+				this.closestEnemyX = (int) msg.get("enemyX");
+				this.closestEnemyY = (int) msg.get("enemyY");
+				this.closestEnemy = true;
+			}
 			this.targets = true;
+			break;
+		case MessageRequest.gameOver:
+			this.running = false;
+			this.disconnect();
 			break;
 		default:
 			break;

@@ -15,6 +15,7 @@ import java.util.Random;
 import common.Enums.UnitType;
 import common.IBattleField;
 import common.IRunner;
+import common.IUnit;
 import common.Log;
 import common.Message;
 import common.MessageRequest;
@@ -136,13 +137,11 @@ public class BattleField implements IBattleField {
 
 	@Override
 	public void sendMessage(Message msg) {
-		// TODO Auto-generated method stub
 		IRunner RMIServer = null;
 		String clienthost = null;
 		try {
 			clienthost = RemoteServer.getClientHost();
 		} catch (ServerNotActiveException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		String urlServer = new String("rmi://" + clienthost + ":"
@@ -164,11 +163,25 @@ public class BattleField implements IBattleField {
 
 	}
 
+	private void sendMessageToDragon(Message msg) {
+		IUnit RMIServer = null;
+		String urlServer = new String("rmi://" + myAddress.split("/")[0] + "/"+ msg.getRecipient());
+
+		try {
+			log(urlServer);
+			RMIServer = (IUnit) Naming.lookup(urlServer);
+			RMIServer.receiveMessage(msg);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void receiveMessage(Message msg) {
-		// TODO Auto-generated method stub
 		String from = msg.getSender();
 		String request = msg.getRequest();
+
 		totalMessagesReceived += 1;
 
 		log("Message received from: " + msg.getSender()
@@ -176,6 +189,7 @@ public class BattleField implements IBattleField {
 
 		Message reply = null;
 		Unit unit;
+		boolean replyToDragon = false;
 		switch (request) {
 		case MessageRequest.spawnUnit: {
 			log("Spawning: " + msg.getSender());
@@ -190,8 +204,14 @@ public class BattleField implements IBattleField {
 			break;
 		}
 		case MessageRequest.putUnit: {
-			this.putUnit((Unit) msg.get("unit"), (Integer) msg.get("x"),
-					(Integer) msg.get("y"));
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				this.putUnit((Unit) msg.get("unit"), (Integer) msg.get("x"),
+						(Integer) msg.get("y"));
+			}
+			else {
+				this.sendGameOverMessage(msg);
+			}
 			break;
 		}
 		case MessageRequest.getUnit: {
@@ -225,91 +245,135 @@ public class BattleField implements IBattleField {
 			break;
 		}
 		case MessageRequest.dealDamage: {
-			int x = (Integer) msg.get("x");
-			int y = (Integer) msg.get("y");
-			unit = this.getUnit(x, y);
-			if (unit != null) {
-				//unit.adjustHitPoints(-(Integer) msg.get("damage"));
-				unit.adjustHitPoints(-units.get((String) msg.get("playerID")).getAttackPoints());
-				unitsChanged = true;
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				int x = (Integer) msg.get("x");
+				int y = (Integer) msg.get("y");
+				this.dealdamage(x,y,msg);
+			 }
+			else {
+				this.sendGameOverMessage(msg);
 			}
-			/*
-			 * Copy the id of the message so that the unit knows what message
-			 * the battlefield responded to.
-			 */
 			break;
 		}
 		case MessageRequest.healDamage: {
-			int x = (Integer) msg.get("x");
-			int y = (Integer) msg.get("y");
-			unit = this.getUnit(x, y);
-			if (unit != null) {	
-				//unit.adjustHitPoints((Integer) msg.get("healed"));
-				unit.adjustHitPoints(units.get((String) msg.get("playerID")).getAttackPoints());
-				unitsChanged = true;
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				int x = (Integer) msg.get("x");
+				int y = (Integer) msg.get("y");
+				unit = this.getUnit(x, y);
+				if (unit != null) {	
+					unit.adjustHitPoints(units.get((String) msg.get("unitID")).getAttackPoints());
+					unitsChanged = true;
+				}
 			}
-			/*
-			 * Copy the id of the message so that the unit knows what message
-			 * the battlefield responded to.
-			 */
+			else {
+				this.sendGameOverMessage(msg);
+			}
 			break;
 		}
 		case MessageRequest.moveUnit: {
 
-			this.moveUnit(units.get((String) msg.get("playerID")),
+			this.moveUnit(units.get((String) msg.get("unitID")),
 					(int) msg.get("x"), (int) msg.get("y"));
 
 			break;
 		}
 		case MessageRequest.removeUnit: {
-			this.removeUnit((Integer) msg.get("x"), (Integer) msg.get("y"));
+			this.removeUnit((String) msg.get("unitID"));
 			break;
 		}
 		case MessageRequest.disconnectUnit: {
-			this.disconnectUnit((String) msg.get("playerID"));
+			this.disconnectUnit((String) msg.get("unitID"));
 			break;
 		}
 		case MessageRequest.getTargets: {
-			String id = (String) msg.get("playerID");
-			int x = units.get(id).getX();
-			int y = units.get(id).getY();
-			
-			reply = new Message(from);		
-			if(getUnit(x,y) instanceof Player) {
-				reply.setMiddleman((String) msg.getMiddleman());
-				reply.setMiddlemanPort((int) msg.getMiddlemanPort()); 
+			Unit initiator = units.get((String) msg.get("unitID"));
+			if(initiator.getHitPoints() > 0) {
+				String id = (String) msg.get("unitID");
+				if(units.get(id) == null) {
+					break;
+				}
+				int x = units.get(id).getX();
+				int y = units.get(id).getY();
+				
+				reply = new Message(from);	
 				reply.setRequest(MessageRequest.returnTargets);
-				reply = getPlayerTargetsMessage(x,y, reply);
+				System.out.println("From dragon: "+from);
+				if(getUnit(x,y) instanceof Player) {
+					reply.setMiddleman((String) msg.getMiddleman());
+					reply.setMiddlemanPort((int) msg.getMiddlemanPort()); 
+					reply = getPlayerTargetsMessage(x,y, reply);
+				}
+				else {
+					reply = getDragonTargetsMessage(x,y, reply);
+					replyToDragon = true;
+				}
 			}
-			else if(getUnit(x,y) instanceof Dragon) {
-				reply = getDragonTargetsMessage(x,y, reply);
+			else {
+				this.sendGameOverMessage(msg);
 			}
 			break;
-			
-			
 		}
-		
+
 		}
 
 		if (reply != null) {
-			sendMessage(reply);
+			if(!replyToDragon) {
+				sendMessage(reply);
+			}
+			else {
+				replyToDragon = false;
+				sendMessageToDragon(reply);
+			}
 		}
 
 	}
 
-	private Message getPlayerTargetsMessage(int x, int y, Message reply) {
+	private void sendGameOverMessage(Message msg) {
+		String id = (String) msg.get("unitID");
+		log("Game over request to: "+ id);
+		int x = units.get(id).getX();
+		int y = units.get(id).getY();
+		
+		Message reply = new Message(id);	
+		reply.setRequest(MessageRequest.gameOver);
+		if(getUnit(x,y) instanceof Player) {
+			reply.setMiddleman((String) msg.getMiddleman());
+			reply.setMiddlemanPort((int) msg.getMiddlemanPort());
+			sendMessage(reply);
+		}
+		else {
+			String address = myAddress.split("/")[0];
+			reply.setMiddleman(reply.getRecipient());
+			reply.setMiddlemanPort(Integer.parseInt(address.split(":")[1]));
+			sendMessageToDragon(reply);
+		}
+	}
+
+	private void dealdamage(int x, int y, Message msg) {
+		Unit unit = this.getUnit(x, y);
+		if (unit != null) {
+			unit.adjustHitPoints(-units.get((String) msg.get("unitID")).getAttackPoints());
+			unitsChanged = true;
+			
+			if (unit.getHitPoints() <= 0) {
+				//removeUnit(unit.getUnitID());
+				
+				sendGameOverMessage(msg);
+			}
+		}
+	}
+
+	private synchronized Message getPlayerTargetsMessage(int x, int y, Message reply) {
 		ArrayList<Unit> players = new ArrayList<Unit>();
 		ArrayList<Unit> dragons = new ArrayList<Unit>();
 
 		int closestEnemyDistance = Integer.MAX_VALUE;
 		Unit closestDragon = null;
 		// We assume that HEAL_RANGE >= ATTACK_RANGE will always apply.
-		int minX = x - Player.HEAL_RANGE >= 0 ? x - Player.HEAL_RANGE : 0;
-		int maxX = x + Player.HEAL_RANGE <= BattleField.MAP_WIDTH ? x + Player.HEAL_RANGE : BattleField.MAP_WIDTH;
-		int minY = y - Player.HEAL_RANGE >= 0 ? y - Player.HEAL_RANGE : 0;
-		int maxY = y + Player.HEAL_RANGE <= BattleField.MAP_HEIGHT ? y + Player.HEAL_RANGE : BattleField.MAP_HEIGHT;
-		for(int i = minX; i < maxX; i++) {
-			for(int j = minY; j < maxY; j++) {
+		for(int i = 0; i < BattleField.MAP_WIDTH; i++) {
+			for(int j = 0; j < BattleField.MAP_HEIGHT; j++) {
 				if(i != x || j != y) {
 					int distance = Math.abs(x-i) + Math.abs(y-j);
 					
@@ -333,12 +397,14 @@ public class BattleField implements IBattleField {
 		reply.put("dragons", dragons);
 		reply.put("playerX", x);
 		reply.put("playerY", y);
-		reply.put("enemyX", closestDragon.getX());
-		reply.put("enemyY", closestDragon.getY());
+		if(closestDragon != null) {
+			reply.put("enemyX", closestDragon.getX());
+			reply.put("enemyY", closestDragon.getY());
+		}
 		return reply;
 	}
 
-	private Message getDragonTargetsMessage(int x, int y, Message reply) {
+	private synchronized Message getDragonTargetsMessage(int x, int y, Message reply) {
 		ArrayList<Unit> players = new ArrayList<Unit>();
 		int minX = x - Dragon.ATTACK_RANGE >= 0 ? x - Dragon.ATTACK_RANGE : 0;
 		int maxX = x + Dragon.ATTACK_RANGE <= BattleField.MAP_WIDTH ? x + Dragon.ATTACK_RANGE : BattleField.MAP_WIDTH;
@@ -358,6 +424,9 @@ public class BattleField implements IBattleField {
 		}
 		
 		reply.put("players", players);
+		String address = myAddress.split("/")[0];
+		reply.setMiddleman(reply.getRecipient());
+		reply.setMiddlemanPort(Integer.parseInt(address.split(":")[1]));
 		return reply;
 	}
 	
@@ -473,44 +542,37 @@ public class BattleField implements IBattleField {
 	 * @param y
 	 *            position.
 	 */
-	private synchronized void removeUnit(int x, int y) {
-		Unit unitToRemove = this.getUnit(x, y);
-		if (unitToRemove == null)
-			return; // There was no unit here to remove
-		map[x][y] = null;
-		unitToRemove.disconnect();
-		units.remove(unitToRemove);
-		unitsChanged = true;
-		mapChanged = true;
-	}
-	
-	private synchronized void removeDragon(int x, int y) {
-		Unit unitToRemove = this.getUnit(x, y);
-		if (unitToRemove == null || !(unitToRemove instanceof Dragon))
-			return; 
-		map[x][y] = null;
-		units.remove(unitToRemove);
-		unitsChanged = true;
-		mapChanged = true;
-	}
-	
-	
-	private synchronized void disconnectUnit(String id) {
-		Unit unitToDisconnect = units.get(id);
-		if (unitToDisconnect == null) {
-			log("Player with id: "+id+" could not disconnect, no unit found");
-			return; // There was no unit here to remove
+	private synchronized boolean removeUnit(String id) {
+		Unit unitToRemove = this.units.get(id);
+		if (unitToRemove == null) {
+			log("Unit with id: "+id+" could not be removed, no unit found");
+			return false; // There was no unit here to remove
 		}
-		int x = unitToDisconnect.getX();
-		int y = unitToDisconnect.getY();
+		int x = unitToRemove.getX();
+		int y = unitToRemove.getY();
 		map[x][y] = null;
-		units.remove(id);
-		log("Player with id: "+id+" has disconnected.");
-
-		unitsChanged = true;
-		mapChanged = true;
+		Unit removed = units.remove(unitToRemove);
+		
+		if(removed == null && map[x][y] == null) {
+			unitsChanged = true;
+			mapChanged = true;
+			return true;
+		}
+		else{
+			return false;
+		}
+	}	
+	
+	private void disconnectUnit(String id) {
+		boolean removed = removeUnit(id);
+		if(removed) {
+			log("Unit with id: "+id+" has disconnected.");
+		}
+		else {
+			log("Unit with id:"+id+" could not be disconnected.");
+		}
 	}
-
+	
 	/**
 	 * Get a unit from a position.
 	 * 
@@ -521,7 +583,7 @@ public class BattleField implements IBattleField {
 	 * @return the unit at the specified position, or return null if there is no
 	 *         unit at that specific position.
 	 */
-	public Unit getUnit(int x, int y) {
+	public synchronized Unit getUnit(int x, int y) {
 		assert x >= 0 && x < map.length;
 		assert y >= 0 && x < map[0].length;
 
@@ -540,7 +602,7 @@ public class BattleField implements IBattleField {
 	public void setMyAddress(String myAddress) {
 		BattleField.myAddress = myAddress;
 	}
-
+	
 	public HashMap<String, String> getHelpers() {
 		return BattleField.helpers;
 	}
@@ -735,7 +797,7 @@ public class BattleField implements IBattleField {
 							spawnDragon();							
 						} 
 						
-					} catch (InterruptedException e) {
+					} catch (InterruptedException e) {	
 						e.printStackTrace();
 					}
 				}
@@ -750,24 +812,14 @@ public class BattleField implements IBattleField {
 	}
 	
 	private void spawnDragon() {
-		Unit dragon = new Dragon();
 		String id = "Dragon" + lastUnitID;
+		Unit dragon = new Dragon(id, myAddress);
 		lastUnitID += 1;
 		int[] pos = getAvailablePosition();
 		this.spawnUnit(id, dragon, pos[0], pos[1]);
 		this.dragons.put(id, dragon);
 	}
 	
-	private void stopRandomDragon() {
-		if (numberOfDragons() > 0) {
-			Random rnd = new Random();
-			int i = (int) rnd.nextInt(dragons.size());
-			List<String> list = new ArrayList<String>(dragons.keySet());
-			Unit dragon = dragons.get(list.get(i));
-			this.removeDragon(dragon.getX(), dragon.getY());
-		}
-	}
-
 	private void initBackupService() {
 		Runnable myRunnable = new Runnable() {
 

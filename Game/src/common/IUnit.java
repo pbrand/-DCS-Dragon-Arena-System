@@ -1,40 +1,36 @@
 package common;
 
-public interface IUnit {
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
-	public void dealDamage(int x, int y, int damage);
+public interface IUnit extends Remote {
 
-	public void healDamage(int x, int y, int healed);
+	public void sendMessage(Message msg) throws RemoteException;
 
+	public void receiveMessage(Message msg) throws RemoteException;
+	
 	/**
 	 * @return the maximum number of hitpoints.
 	 */
-	public int getMaxHitPoints();
+	public int getMaxHitPoints() throws RemoteException;
 
-//	/**
-//	 * @return the unique unit identifier.
-//	 */
-//	public int getUnitID();
+	/**
+	 * @return the unique unit identifier.
+	 */
+	public String getUnitID() throws RemoteException;
 
 	/**
 	 * @return the current number of hitpoints.
 	 */
-	public int getHitPoints();
+	public int getHitPoints() throws RemoteException;
 
 	/**
 	 * @return the attack points
 	 */
-	public int getAttackPoints();
+	public int getAttackPoints() throws RemoteException;
 
-	// public UnitType getType(int x, int y);
-
-	//public void moveUnit(int x, int y);
-
-	// Disconnects the unit from the battlefield by exiting its run-state
-	public void disconnect();
-
-	public int getX();
+	public int getX() throws RemoteException;
 	
-	public int getY();
+	public int getY() throws RemoteException;
 
 }
