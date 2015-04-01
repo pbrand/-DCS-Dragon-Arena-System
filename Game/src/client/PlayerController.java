@@ -293,6 +293,7 @@ public class PlayerController implements IPlayerController {
 
 	@Override
 	public void sendMessage(Message msg) {
+		msg.setSender(playerID);
 		IRunner RMIServer = null;
 		String urlServer = new String("rmi://" + host + ":" + port + "/"
 				+ battleHelper);

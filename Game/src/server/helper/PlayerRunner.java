@@ -242,6 +242,7 @@ public class PlayerRunner implements IRunner {
 				msg.put("unitID", id);
 				msg.put("x", targetX);
 				msg.put("y", targetY);
+				msg.setSender(id);
 				this.sendMessageToServer(msg);
 				break;
 			default:
