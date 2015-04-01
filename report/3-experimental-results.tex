@@ -13,8 +13,8 @@ The purpose of causal consistency is to make sure that events that are causally 
 To measure this, it is necessary to assign a timestamp upon message creation. 
 Additionally, each message is provided with its own unique identifier. 
 Every message which is received should be stored in a list and assigned a timestamp which represents the time of arrival.
-Whenever a new message is received, it's timestamps should be checked with the other timestamps of messages in the list in order to check causality. If the newly received message was sent before a message which has already been received, and these messages are causally related, then the causality constraint is certainly not met.
-In this project, a causal relationship is defined by: a certain unit \emph{A} performs an action which has a effect on the state of a certain unit \emph{B}, for instance if a player \emph{A} attacks a dragon \emph{B}.
+Whenever a new message is received, its timestamps should be checked with the other timestamps of messages in the list in order to check causality. If the newly received message was sent before a message which has already been received, and these messages are causally related, then the causality constraint is certainly not met.
+In this project, a causal relationship is defined by: a certain unit \emph{A} performs an action which has an effect on the state of a certain unit \emph{B}, for instance if a player \emph{A} attacks a dragon \emph{B}.
 
 It is also important to measure how consistent the backup of the battlefield is with the battlefield on the main server.
 This can be measured by taking a snapshot of the battlefield on the main server at a random time after which the main server is forcefully shut down. 
@@ -39,7 +39,7 @@ The memory and CPU usage should also be recorded  and compared with each other f
 The only constraint is, that the same hardware is used during every test run.
 
 It is also important to test how scalable the main server is. 
-As already stated, there is only one main server active, but the number of helper server may be increased.
+As already stated, there is only one main server active, but the number of helper servers may be increased.
 This test will measure  the number of helper servers the main server can handle.
 The number of clients per helper server will be kept consistent for each test in this experiment, only the number of helper servers will be increased for each following test run.
 The same properties as in the scalability of the helper servers will be measured, but now for the main server.
@@ -49,9 +49,9 @@ The CPU and memory usage are also recorded in order to find the performance bott
 
 \subsection{Fault-tolerance Experiments}
 For fault tolerance the system also needs to be tested for both the helpers and the main server.
-To test the tolerance of the system when helpers crash, tests are run with multiple helpers server which are killed at random to simulate crashes.
-It is then possible to measure the number of messages which were tried to be send from the server and the number of messages which were actually send to a helper server after one was randomly killed.
-This tests needs to be run multiple times and the different outcomes should be compared in order to get a view of the number of failed send messages.
+To test the tolerance of the system when helpers crash, tests are run with multiple helper servers which are killed at random to simulate crashes.
+It is then possible to measure the number of messages which were tried to be sent from the server and the number of messages which were actually sent to a helper server after one was randomly killed.
+This tests needs to be run multiple times and the different outcomes should be compared in order to get a view of the number of failed sent messages.
 If this value is low, it is probably safe to conclude that the helper server's fault-tolerance is acceptable.
 
 The same experiment should be done for measuring the tolerance of the main server.
@@ -76,12 +76,12 @@ Therefore it is important for the master server to maintain a correct state of t
 
 As stated, the fancy measurements were not performed during this project. 
 However, we did collect some results for helpers and the main server.
-The number of messages which were send and received are logged and as well as the number of messages which were failed to send.
+The number of messages which were sent and received are logged and as well as the number of messages which were failed to send.
 These results are from tests in which the system is spawning the players by reading a file from the Game Trace Archive.
 No helper nodes were killed.
-It is still notable that there are still some messages failing to be send. However the number of messages which failed is really small.
-What is also observed, is that the failures in the helper servers is much lower that the failure in the main server.
-This is probably because the main server eventually receives much more requests than each helper server.
+It is still notable that there are still some messages failing to be sent. However the number of messages which failed is really small.
+What is also observed, is that the failures in the helper servers is much lower than the failure in the main server.
+This is probably because the main server eventually receives many more requests than each helper server.
 
 For scalability tests we did not collect hard evidence. 
 However, there we did run some tests in which random helper servers were killed after which the clients reconnected to other helper servers.
@@ -90,5 +90,5 @@ The clients were also able to continue playing the game.
 Another thing which can be noted from the metrics, is that the nodes are quite balanced.
 Even though the helper servers are chosen at random it still shows that every helper node has a fair amount of clients.
 During the tests there was no case in which almost all clients were connected to one server node and every other helper was doing almost nothing.
-And because these nodes are quite balanced, clients can reconnect faster to other helper nodes, simply because the number of helper nodes which need to reconnect is not large.
+Because these nodes are quite balanced, clients can reconnect faster to other helper nodes, simply because the number of helper nodes which need to reconnect is not large.
 

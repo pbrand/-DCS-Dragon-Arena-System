@@ -2,7 +2,7 @@
 The implementation of a distributed game is quite a challenge, certainly if you're a beginner in the Distributed Systems field. 
 It is safe to conclude that in this case the helper servers are not of much use and that the use of multiple battlefield servers could have been better.
 
-On the other hand the experiments do show that the current implementation does scale and is able to support multiple concurrent users, although it can be concluded that the current implementation is more client-server oriented rather than fully distributed.
+On the other hand the experiments do show that the current implementation does scale and is able to support multiple concurrent users, although it can be concluded that the current implementation is more client-server oriented rather than fully distributed with at least 5 nodes.
 
 Besides the system being scalable, it is also fault-tolerant up to a certain level as clients may also recover from helper server crashes by just reconnecting to a different one and the main server may be replaced by a backup server if it crashes.
 Even though the implementation isn't fully distributed, it does not mean that the current design (regardless of its implementation) is all that bad. 
@@ -15,7 +15,7 @@ As we experienced, one might easily get tempted to go too much into detail right
 After the written part about \emph{Consistency and Replication}, the first thing we did was focus on the algorithms, for implementing \emph{causal consistency} for instance. 
 At some point we came to the conclusion that this took too much time if we wished to follow this approach for all our design choices, hence we started looking for libraries that could provide us with an implementation. 
 In the end, it was clear that this should not be the focus of the project and therefore an initial (primitive) distributed concept was designed and eventually implemented. 
-Unfortunately this cost us a lot of time that is not represented in the final results (e.g. this paper and the implementation of the system).
+Unfortunately this costed us a lot of time that is not represented in the final results (e.g. this paper and the implementation of the system).
 
 Another problem that we faced was our decision of refactoring the given codebase. 
 A lot of time was spent on trying to make the given code work, instead of developing a new system from scratch while keeping the given implementation as a valuable resource in mind.
