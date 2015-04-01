@@ -111,7 +111,6 @@ public class PlayerRunner implements IRunner {
 			break;
 		case MessageRequest.disconnectUnit:
 			disconnectUser(msg.getSender());
-			clients.remove(msg.getSender());
 			break;
 		case MessageRequest.moveUnit:
 			moveUnit(msg.getSender(), (Direction) msg.get("direction"));
@@ -136,6 +135,12 @@ public class PlayerRunner implements IRunner {
 			break;
 		case MessageRequest.gameOver:
 			sendMessageToClient(msg);
+			break;
+		case MessageRequest.disconnectAck:
+			sendMessageToClient(msg);
+			if((boolean) msg.get("disconnected")){
+				clients.remove(msg.getSender());
+			}
 			break;
 		default:
 			break;

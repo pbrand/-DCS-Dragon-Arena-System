@@ -53,6 +53,9 @@ public class PlayerController implements IPlayerController {
 	
 	private long startTime;
 	private long endTime;
+	private boolean requestedDisconnect = false;
+	private boolean disconnectAck = false;
+	private boolean disconnectCheckerStarted = false;
 	
 	public PlayerController(String playerID, String host, int port,
 			String battle_helper, String battleServerLocation,
@@ -84,7 +87,7 @@ public class PlayerController implements IPlayerController {
 
 		int i = 0;
 		int life = (int) Math.round(lifespan/ 100);
-		// TODO This is an infinite loop until it receives a message that it
+		// This is an infinite loop until it receives a message that it
 		// should stop. That's tricky.
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
@@ -189,7 +192,6 @@ public class PlayerController implements IPlayerController {
 					}
 					
 				} catch (InterruptedException | RemoteException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				};
 
@@ -197,7 +199,9 @@ public class PlayerController implements IPlayerController {
 				disconnect();
 				break;
 			}
-
+			if(!disconnectAck && requestedDisconnect) {
+				disconnectChecker();
+			}
 			/* Stop if the player runs out of hitpoints */
 			// Receive a message here?? (if hitpoints <= 0) -> then set running
 			// to false so that the mainloop quits.
@@ -240,6 +244,7 @@ public class PlayerController implements IPlayerController {
 	}
 	
 	public void disconnect() {
+		this.requestedDisconnect = true;
 		Message disconnect = createDisconnectMessage();
 		log(disconnect.toString());
 		sendMessage(disconnect);
@@ -288,7 +293,6 @@ public class PlayerController implements IPlayerController {
 
 	@Override
 	public void sendMessage(Message msg) {
-		// TODO Auto-generated method stub
 		IRunner RMIServer = null;
 		String urlServer = new String("rmi://" + host + ":" + port + "/"
 				+ battleHelper);
@@ -317,7 +321,6 @@ public class PlayerController implements IPlayerController {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void receiveMessage(Message msg) {
-		// TODO Auto-generated method stub
 		log("PlayerController: received message");
 		log("PlayerController: msg: " + msg.toString());
 		totalMessagesReceived += 1;
@@ -344,9 +347,47 @@ public class PlayerController implements IPlayerController {
 			this.running = false;
 			this.disconnect();
 			break;
+		case MessageRequest.disconnectAck:
+			if((boolean) msg.get("disconnected")) {
+				this.disconnectAck = true;
+				this.requestedDisconnect = false;
+			}
+			else {
+				disconnect();
+			}
+			break;
 		default:
 			break;
 		}
+
+	}
+	
+	private void disconnectChecker() {
+		if (disconnectCheckerStarted) {
+			return;
+		}
+		
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				while (!disconnectAck) {
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if (requestedDisconnect) {
+						disconnect();
+					}
+				}
+				
+			}
+			
+		};
+		Thread thread = new Thread(runnable);
+		thread.start();
+		disconnectCheckerStarted = true;
 	}
 
 	private Message createMessage(String recipient) {

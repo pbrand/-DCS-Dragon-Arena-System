@@ -279,7 +279,15 @@ public class BattleField implements IBattleField {
 			break;
 		}
 		case MessageRequest.disconnectUnit: {
-			this.disconnectUnit((String) msg.get("unitID"));
+			Unit unitToBeRemoved = units.get((String) msg.get("unitID"));
+			boolean disconnect = this.disconnectUnit((String) msg.get("unitID"));
+			if(unitToBeRemoved instanceof Player) {
+				reply = new Message(from);
+				reply.setRequest(MessageRequest.disconnectAck);
+				reply.put("disconnected", disconnect);
+				reply.setMiddleman(msg.getMiddleman());
+				reply.setMiddlemanPort(msg.getMiddlemanPort());
+			}
 			break;
 		}
 		case MessageRequest.getTargets: {
@@ -558,7 +566,10 @@ public class BattleField implements IBattleField {
 		}
 	}	
 	
-	private void disconnectUnit(String id) {
+	private boolean disconnectUnit(String id) {
+		if(units.get(id) == null) {
+			return true;
+		}
 		boolean removed = removeUnit(id);
 		if(removed) {
 			log("Unit with id: "+id+" has disconnected.");
@@ -566,6 +577,7 @@ public class BattleField implements IBattleField {
 		else {
 			log("Unit with id:"+id+" could not be disconnected.");
 		}
+		return removed;
 	}
 	
 	/**
