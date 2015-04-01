@@ -108,6 +108,7 @@ public class BattleField implements IBattleField {
 			initHelperChecker();
 			initBackupService();
 			dragonRunner();
+			metricsRunner();
 		}
 	}
 
@@ -187,7 +188,7 @@ public class BattleField implements IBattleField {
 		switch (request) {
 		case MessageRequest.spawnUnit: {
 			log("Spawning: " + msg.getSender());
-			Unit player = new Player();
+			Unit player = new Player(from);
 			int[] pos = getAvailablePosition();
 			boolean spawned = this.spawnUnit(from, player, pos[0], pos[1]);
 			reply = new Message(from);
@@ -782,6 +783,32 @@ public class BattleField implements IBattleField {
 
 	}
 	
+	private void metricsRunner() {
+		Runnable myRunnable = new Runnable() {
+
+			public void run() {
+				log("Metrics Runner running");
+				
+				while (true) {
+					try {
+						Thread.sleep(5000);	
+						
+						if (units.keySet().size() == 0) {
+							saveMetrics();
+							break;
+						}
+						
+					} catch (InterruptedException e) {	
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		Thread thread = new Thread(myRunnable);
+		thread.start();
+	}
+	
+	
 	private void dragonRunner() {
 		Runnable myRunnable = new Runnable() {
 
@@ -813,7 +840,7 @@ public class BattleField implements IBattleField {
 	}
 	
 	private void spawnDragon() {
-		String id = "Dragon" + lastUnitID;
+		String id = "d_" + lastUnitID;
 		Unit dragon = new Dragon(id, myAddress);
 		lastUnitID += 1;
 		int[] pos = getAvailablePosition();

@@ -153,7 +153,6 @@ public class Dragon extends Unit implements Runnable {
 			this.targets = true;
 			break;
 		case MessageRequest.gameOver:
-			System.out.println("\n***************************\n**      DRAGON: "+this.unitID+" SHOULD DISCONNECT!!!!!!!!!!!! **\n ********************************\n");
 			this.running = false;
 			this.disconnect();
 			break;

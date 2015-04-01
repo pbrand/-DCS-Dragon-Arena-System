@@ -110,10 +110,10 @@ public class BattleFieldViewer extends JPanel implements Runnable {
 				 (int)(filler));
 
 				/* Draw the identifier */
-				// doubleBufferGraphics.setColor(Color.WHITE);
-				// doubleBufferGraphics.drawString("" + u.getUnitID(), (int)x,
-				// (int)y + 15);
-				// doubleBufferGraphics.setColor(Color.BLACK);
+				 doubleBufferGraphics.setColor(Color.WHITE);
+				 doubleBufferGraphics.drawString("" + u.getUnitID(), (int)x,
+				 (int)y + 15);
+				 doubleBufferGraphics.setColor(Color.BLACK);
 
 				/* Draw a rectangle around the unit */
 				doubleBufferGraphics.drawRect((int) x, (int) y, (int) xRatio,

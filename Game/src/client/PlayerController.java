@@ -179,8 +179,11 @@ public class PlayerController implements IPlayerController {
 								movePlayer(direction);
 							}
 							else{
-								Direction direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
-								movePlayer(direction);
+//								Direction direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
+//								movePlayer(direction);
+								// If no dragons are present, the game is over so disconnect
+								disconnect();
+								this.running = false;
 							}
 						}
 					}
@@ -199,7 +202,7 @@ public class PlayerController implements IPlayerController {
 			// Receive a message here?? (if hitpoints <= 0) -> then set running
 			// to false so that the mainloop quits.
 		}
-		System.out.println("Player: "+playerID+" has stopped running and requested disconnect.");
+		//System.out.println("Player: "+playerID+" has stopped running and requested disconnect.");
 	}
 
 	private void healDamage(int x, int y) {
