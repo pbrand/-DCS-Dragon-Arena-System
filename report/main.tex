@@ -11,10 +11,13 @@
 \title{Distributed Computing Systems IN4391\\ The Dragons Arena System %: Distributed Simulation of Virtual Worlds
 }
 \author{Patrick Brand (p.brand@student.tudelft.nl) \and
-    Raies Saboerali (r.a.a.saboerali@student.tudelft.nl)}
+    Raies Saboerali (r.a.a.saboerali@student.tudelft.nl)
+	%\thanks	T.A: Ir. Mihai Capota, Course Manager: Dr.ir. Alexandru IOSUP
+}
 \date{}
 
 %support cast needs to be filled in here.
+
 
 \pagestyle{empty}
 
@@ -25,7 +28,9 @@
 \begin{abstract}
 %a description of the problem, system description, analysis overview, and one main result. Size: one paragraph with at most 150 words.
 This report discusses the the process of implementing a distributed version of the Dragon Arena System (DAS) in order to be scalable and to support multiple concurrent users playing the game.
-The systems architecture will be discussed, as well as tests results and a discussions about the findings of the project.
+The game architecture will consist of two main layers; the helper server layer and the main server layer.
+The helper servers will perform computation and the servers in the main layer will keep track of the battlefield en eventual copies of the battlefield.
+The communication between the servers and the clients and servers will be done via Java's Remote Method Invocation.
 \end{abstract}
 
 
