@@ -47,7 +47,7 @@ Instead of measuring the response time of messages between helper and client, th
 The CPU and memory usage are also recorded in order to find the performance bottleneck.
 
 
-\subsection{Fault-tolerance Experiments}
+\subsection{Fault-Tolerance Experiments}
 For fault tolerance the system also needs to be tested for both the helpers and the main server.
 To test the tolerance of the system when helpers crash, tests are run with multiple helper servers which are killed at random to simulate crashes.
 It is then possible to measure the number of messages which were tried to be sent from the server and the number of messages which were actually sent to a helper server after one was randomly killed.
