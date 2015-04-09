@@ -61,7 +61,7 @@ public class ClientMain {
 			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
 					0);
 
-			Registry reg = LocateRegistry.getRegistry(helper_host, helper_port);
+			Registry reg = LocateRegistry.createRegistry(helper_port);
 
 			reg.rebind(playerName, stub);
 			log(playerName, "PlayerController running, server: " + serverID
@@ -73,6 +73,52 @@ public class ClientMain {
 			
 		} catch (RemoteException e) {
 			e.printStackTrace();
+			
+			String playerName = null;
+			double lifespan = Integer.MAX_VALUE;
+
+			if (args.length < 2) {
+				playerName = "p_" + Common.randomString(10);
+			} else {
+				playerName = args[1];
+				lifespan = Double.parseDouble(args[2]);
+			}
+
+			String serverID = playerName;
+
+			String battleServer = "main_battle_server";
+			/**
+			 * Location should be provided in host:port format
+			 */
+			String battleServerLocation = args[0];
+			String res = getHelperServer(battleServerLocation, battleServer);
+			if (res == null || res.equals("noServers")) {
+				return;
+			}
+
+			String[] helper = res.split(":");
+
+			String battle_helper = helper[0];
+			helper_host = helper[1];
+			helper_port = Integer.parseInt(helper[2]);
+
+			log(playerName, "host: " + helper_host + ":" + helper_port);
+
+			player = new PlayerController(playerName, helper_host, helper_port,
+					battle_helper, battleServerLocation, battleServer, lifespan);
+
+			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
+					0);
+
+			Registry reg = LocateRegistry.getRegistry(helper_port);
+
+			reg.rebind(playerName, stub);
+			log(playerName, "PlayerController running, server: " + serverID
+					+ ", reg: " + reg.toString());
+			//printRegistry(reg.list());
+			player.spawnPlayer();
+			
+			playerCommander(playerName);
 		}
 	}
 
@@ -112,7 +158,11 @@ public class ClientMain {
 					.lookup("rmi://" + helper_host + ":" + helper_port + "/"
 							+ player);
 			RMIServer.movePlayer(direction);
-		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+		}  catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (NotBoundException e) {
 			e.printStackTrace();
 		}
 
