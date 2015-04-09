@@ -1,5 +1,5 @@
 \section{Experimental Results}
-Unfortunately we were not able to utilize the DAS-4 system nor Amazon EC2, thus we were not able to run our project fully distributed, hence no real world tests could be done. Therefore we decided to spend this chapter on how we wish we could have performed the experiments if these implementation problems hadn't delayed us this much. However we were able to collect some primitive data from some local experiments. These results will be discussed here as well.
+Unfortunately we were not able to utilize the DAS-4 system (due to an incompatible java version), however we tested the game when running on two different laptops over a local area network (LAN). These tests were after the initial deadline and therefore the testing part of the game had already been done. Therefore we decided to spend this chapter on how we wish we could have performed the experiments in the first place if these implementation problems hadn't delayed us this much. However we were able to collect some primitive data from some local experiments. These results will be discussed here as well.
 
 \subsection{Setup}
 For this experiment, the DAS-4 should be initialized with 5 compute-nodes. 
@@ -92,3 +92,4 @@ Even though the helper servers are chosen at random it still shows that every he
 During the tests there was no case in which almost all clients were connected to one server node and every other helper was doing almost nothing.
 Because these nodes are quite balanced, clients can reconnect faster to other helper nodes, simply because the number of helper nodes which need to reconnect is not large.
 
+In the end we also tested the game on two laptops that were connected through a LAN. Although the game ran, some issues came up which were mainly related to updating the movement of the players. We think this is due to the great amount of messages that the main server needs to handle in a very short time period without any form of buffering.
