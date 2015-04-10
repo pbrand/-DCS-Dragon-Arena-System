@@ -10,12 +10,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import common.Enums.UnitType;
 import common.IBattleField;
+import common.IDragonController;
 import common.IRunner;
-import common.IUnit;
 import common.Log;
 import common.Message;
 import common.MessageRequest;
@@ -159,12 +160,12 @@ public class BattleField implements IBattleField {
 	}
 
 	private void sendMessageToDragon(Message msg) {
-		IUnit RMIServer = null;
+		IDragonController RMIServer = null;
 		String urlServer = new String("rmi://" + myAddress.split("/")[0] + "/"+ msg.getRecipient());
 
 		try {
 			log(urlServer);
-			RMIServer = (IUnit) Naming.lookup(urlServer);
+			RMIServer = (IDragonController) Naming.lookup(urlServer);
 			RMIServer.receiveMessage(msg);
 
 		} catch (Exception e) {
@@ -755,10 +756,10 @@ public class BattleField implements IBattleField {
 		snap.setLastUnitID(lastUnitID);
 
 		if (mapChanged)
-			//snap.setMap(map);
+			snap.setMap(map);
 
 		if (unitsChanged)
-			//snap.setUnits(units);
+			snap.setUnits(units);
 		
 		if (helpersChanged) {
 			snap.setHelpers(helpers);
@@ -853,11 +854,11 @@ public class BattleField implements IBattleField {
 	
 	private void spawnDragon() {
 		String id = "d_" + lastUnitID;
-		Unit dragon = new Dragon(id, myAddress);
+		DragonController dragonController = new DragonController(id, myAddress);
 		lastUnitID += 1;
 		int[] pos = getAvailablePosition();
-		this.spawnUnit(id, dragon, pos[0], pos[1]);
-		this.dragons.put(id, dragon);
+		this.spawnUnit(id, dragonController.getDragon(), pos[0], pos[1]);
+		this.dragons.put(id, dragonController.getDragon());
 		dragonsChanged = true;
 	}
 	
@@ -933,12 +934,27 @@ public class BattleField implements IBattleField {
 	public boolean promoteBackupToMain() throws RemoteException {		
 		if (!isBackup) {
 			isBackup = false;
-			log("Backup server promoted to main server");
 			initHelperChecker();
 			initBackupService();
+			reInitDragons();
+			log("Backup server promoted to main server");
 			return true;
 		} else {
 			return false;
+		}
+	}
+	
+	private void reInitDragons() {
+		log("DragonRunner running again");
+		Iterator<Entry<String, Unit>> dragons = this.dragons.entrySet().iterator();
+		
+		while (dragons.hasNext()) {	
+			Dragon current = (Dragon) dragons.next();
+			current.serverAddress = myAddress;
+			new DragonController(current);
+		}
+		while (numberOfDragons() < NR_OF_DRAGONS) {
+			spawnDragon();
 		}
 	}
 

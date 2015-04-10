@@ -29,6 +29,7 @@ public class Main {
 		if (args.length > 0) {
 			port = Integer.parseInt(args[0]);
 		}
+		boolean isMain = false;
 
 		IBattleField stub = null;
 		try {
@@ -39,6 +40,7 @@ public class Main {
 				battlefield = BattleField.createBackupBattleField();
 			} else {
 				battlefield = BattleField.getBattleField();
+				isMain = true;
 			}
 			
 			stub = (IBattleField) UnicastRemoteObject.exportObject(battlefield,
@@ -54,6 +56,10 @@ public class Main {
 
 			System.out.println("Battlefield running, server: " + serverID
 					+ ", reg: " + reg.toString());
+			
+			if (isMain && args.length > 1) {
+				setBackup(address, args[1]);
+			}
 			
 			mainCommander(address);
 

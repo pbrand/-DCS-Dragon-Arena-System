@@ -1,8 +1,5 @@
 package server.master;
 
-import java.rmi.RemoteException;
-
-import common.Message;
 
 public class Player extends Unit {
 	private static final long serialVersionUID = 2212365375426947223L;
@@ -29,17 +26,5 @@ public class Player extends Unit {
 		this.unitID = id;
 	}
 
-	// We don't want to simulate players on the server now.
-	@Override
-	public void sendMessage(Message msg) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void receiveMessage(Message msg) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
 
 }

@@ -191,7 +191,7 @@ public class PlayerController implements IPlayerController {
 						}
 					}
 					
-				} catch (InterruptedException | RemoteException e) {
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				};
 

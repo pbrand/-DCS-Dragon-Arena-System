@@ -1,36 +1,34 @@
 package common;
 
-import java.rmi.Remote;
-import java.rmi.RemoteException;
 
-public interface IUnit extends Remote {
+public interface IUnit {
 
-	public void sendMessage(Message msg) throws RemoteException;
+	//public void sendMessage(Message msg);
 
-	public void receiveMessage(Message msg) throws RemoteException;
+	//public void receiveMessage(Message msg);
 	
 	/**
 	 * @return the maximum number of hitpoints.
 	 */
-	public int getMaxHitPoints() throws RemoteException;
+	public int getMaxHitPoints();
 
 	/**
 	 * @return the unique unit identifier.
 	 */
-	public String getUnitID() throws RemoteException;
+	public String getUnitID();
 
 	/**
 	 * @return the current number of hitpoints.
 	 */
-	public int getHitPoints() throws RemoteException;
+	public int getHitPoints();
 
 	/**
 	 * @return the attack points
 	 */
-	public int getAttackPoints() throws RemoteException;
+	public int getAttackPoints();
 
-	public int getX() throws RemoteException;
+	public int getX();
 	
-	public int getY() throws RemoteException;
+	public int getY();
 
 }
