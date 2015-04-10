@@ -56,7 +56,7 @@ public class BattleField implements IBattleField {
 	private boolean mapChanged;
 	private boolean helpersChanged;
 	private boolean dragonsChanged;
-	
+
 	/**
 	 * Metrics
 	 */
@@ -69,12 +69,12 @@ public class BattleField implements IBattleField {
 	private int totalNumberOfSuccessfullBackupUpdates;
 	private int totalNumberOfFailedBackupUpdates;
 	private int totalNumberOfDisconnectedHelpers;
-	
+
 	private long startTime;
 	private long endTime;
-	
-	//private static final Logger logger = LogManager.getLogger(BattleField.class);
 
+	// private static final Logger logger =
+	// LogManager.getLogger(BattleField.class);
 
 	/**
 	 * Initialize the battlefield to the specified size
@@ -89,20 +89,20 @@ public class BattleField implements IBattleField {
 		this.startTime = System.currentTimeMillis();
 		this.isBackup = isBackup;
 	}
-	
+
 	private BattleField() throws RemoteException {
 		this(false);
 	}
-	
+
 	public void initiateBattleService(String address) {
-		
+
 		synchronized (this) {
 			map = new Unit[MAP_WIDTH][MAP_HEIGHT];
 			units = new HashMap<String, Unit>();
 			helpers = new HashMap<String, String>();
 			dragons = new HashMap<String, Unit>();
 		}
-		
+
 		setMyAddress(address);
 		log("Battlefield created");
 		if (!isBackup) {
@@ -149,7 +149,7 @@ public class BattleField implements IBattleField {
 			RMIServer = (IRunner) Naming.lookup(urlServer);
 			// Attempt to send messages the specified number of times
 			RMIServer.receiveMessage(msg);
-			
+
 			totalMessagesSend += 1;
 
 		} catch (Exception e) {
@@ -161,7 +161,8 @@ public class BattleField implements IBattleField {
 
 	private void sendMessageToDragon(Message msg) {
 		IDragonController RMIServer = null;
-		String urlServer = new String("rmi://" + myAddress.split("/")[0] + "/"+ msg.getRecipient());
+		String urlServer = new String("rmi://" + myAddress.split("/")[0] + "/"
+				+ msg.getRecipient());
 
 		try {
 			log(urlServer);
@@ -172,7 +173,7 @@ public class BattleField implements IBattleField {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void receiveMessage(Message msg) {
 		String from = msg.getSender();
@@ -180,8 +181,8 @@ public class BattleField implements IBattleField {
 
 		totalMessagesReceived += 1;
 
-		log("Message received from: " + msg.getSender()
-				+ ", request: " + request);
+		log("Message received from: " + msg.getSender() + ", request: "
+				+ request);
 
 		Message reply = null;
 		Unit unit;
@@ -201,11 +202,10 @@ public class BattleField implements IBattleField {
 		}
 		case MessageRequest.putUnit: {
 			Unit initiator = units.get((String) msg.get("unitID"));
-			if(initiator.getHitPoints() > 0) {
+			if (initiator.getHitPoints() > 0) {
 				this.putUnit((Unit) msg.get("unit"), (Integer) msg.get("x"),
 						(Integer) msg.get("y"));
-			}
-			else {
+			} else {
 				this.sendGameOverMessage(msg);
 			}
 			break;
@@ -242,28 +242,27 @@ public class BattleField implements IBattleField {
 		}
 		case MessageRequest.dealDamage: {
 			Unit initiator = units.get((String) msg.get("unitID"));
-			if(initiator.getHitPoints() > 0) {
+			if (initiator.getHitPoints() > 0) {
 				int x = (Integer) msg.get("x");
 				int y = (Integer) msg.get("y");
-				this.dealdamage(x,y,msg);
-			 }
-			else {
+				this.dealdamage(x, y, msg);
+			} else {
 				this.sendGameOverMessage(msg);
 			}
 			break;
 		}
 		case MessageRequest.healDamage: {
 			Unit initiator = units.get((String) msg.get("unitID"));
-			if(initiator.getHitPoints() > 0) {
+			if (initiator.getHitPoints() > 0) {
 				int x = (Integer) msg.get("x");
 				int y = (Integer) msg.get("y");
 				unit = this.getUnit(x, y);
-				if (unit != null) {	
-					unit.adjustHitPoints(units.get((String) msg.get("unitID")).getAttackPoints());
+				if (unit != null) {
+					unit.adjustHitPoints(units.get((String) msg.get("unitID"))
+							.getAttackPoints());
 					unitsChanged = true;
 				}
-			}
-			else {
+			} else {
 				this.sendGameOverMessage(msg);
 			}
 			break;
@@ -281,8 +280,9 @@ public class BattleField implements IBattleField {
 		}
 		case MessageRequest.disconnectUnit: {
 			Unit unitToBeRemoved = units.get((String) msg.get("unitID"));
-			boolean disconnect = this.disconnectUnit((String) msg.get("unitID"));
-			if(unitToBeRemoved instanceof Player) {
+			boolean disconnect = this
+					.disconnectUnit((String) msg.get("unitID"));
+			if (unitToBeRemoved instanceof Player) {
 				reply = new Message(from);
 				reply.setRequest(MessageRequest.disconnectAck);
 				reply.put("disconnected", disconnect);
@@ -293,28 +293,26 @@ public class BattleField implements IBattleField {
 		}
 		case MessageRequest.getTargets: {
 			Unit initiator = units.get((String) msg.get("unitID"));
-			if(initiator.getHitPoints() > 0) {
+			if (initiator.getHitPoints() > 0) {
 				String id = (String) msg.get("unitID");
-				if(units.get(id) == null) {
+				if (units.get(id) == null) {
 					break;
 				}
 				int x = units.get(id).getX();
 				int y = units.get(id).getY();
-				
-				reply = new Message(from);	
+
+				reply = new Message(from);
 				reply.setRequest(MessageRequest.returnTargets);
-				System.out.println("From dragon: "+from);
-				if(getUnit(x,y) instanceof Player) {
+				System.out.println("From dragon: " + from);
+				if (getUnit(x, y) instanceof Player) {
 					reply.setMiddleman((String) msg.getMiddleman());
-					reply.setMiddlemanPort((int) msg.getMiddlemanPort()); 
-					reply = getPlayerTargetsMessage(x,y, reply);
-				}
-				else {
-					reply = getDragonTargetsMessage(x,y, reply);
+					reply.setMiddlemanPort((int) msg.getMiddlemanPort());
+					reply = getPlayerTargetsMessage(x, y, reply);
+				} else {
+					reply = getDragonTargetsMessage(x, y, reply);
 					replyToDragon = true;
 				}
-			}
-			else {
+			} else {
 				this.sendGameOverMessage(msg);
 			}
 			break;
@@ -323,10 +321,9 @@ public class BattleField implements IBattleField {
 		}
 
 		if (reply != null) {
-			if(!replyToDragon) {
+			if (!replyToDragon) {
 				sendMessage(reply);
-			}
-			else {
+			} else {
 				replyToDragon = false;
 				sendMessageToDragon(reply);
 			}
@@ -336,18 +333,17 @@ public class BattleField implements IBattleField {
 
 	private void sendGameOverMessage(Message msg) {
 		String id = (String) msg.get("unitID");
-		log("Game over request to: "+ id);
+		log("Game over request to: " + id);
 		int x = units.get(id).getX();
 		int y = units.get(id).getY();
-		
-		Message reply = new Message(id);	
+
+		Message reply = new Message(id);
 		reply.setRequest(MessageRequest.gameOver);
-		if(getUnit(x,y) instanceof Player) {
+		if (getUnit(x, y) instanceof Player) {
 			reply.setMiddleman((String) msg.getMiddleman());
 			reply.setMiddlemanPort((int) msg.getMiddlemanPort());
 			sendMessage(reply);
-		}
-		else {
+		} else {
 			String address = myAddress.split("/")[0];
 			reply.setMiddleman(reply.getRecipient());
 			reply.setMiddlemanPort(Integer.parseInt(address.split(":")[1]));
@@ -358,82 +354,87 @@ public class BattleField implements IBattleField {
 	private void dealdamage(int x, int y, Message msg) {
 		Unit unit = this.getUnit(x, y);
 		if (unit != null) {
-			unit.adjustHitPoints(-units.get((String) msg.get("unitID")).getAttackPoints());
+			unit.adjustHitPoints(-units.get((String) msg.get("unitID"))
+					.getAttackPoints());
 			unitsChanged = true;
-			
+
 			if (unit.getHitPoints() <= 0) {
-				//removeUnit(unit.getUnitID());
-				
+				// removeUnit(unit.getUnitID());
+
 				sendGameOverMessage(msg);
 			}
 		}
 	}
 
-	private synchronized Message getPlayerTargetsMessage(int x, int y, Message reply) {
+	private synchronized Message getPlayerTargetsMessage(int x, int y,
+			Message reply) {
 		ArrayList<Unit> players = new ArrayList<Unit>();
 		ArrayList<Unit> dragons = new ArrayList<Unit>();
 
 		int closestEnemyDistance = Integer.MAX_VALUE;
 		Unit closestDragon = null;
 		// We assume that HEAL_RANGE >= ATTACK_RANGE will always apply.
-		for(int i = 0; i < BattleField.MAP_WIDTH; i++) {
-			for(int j = 0; j < BattleField.MAP_HEIGHT; j++) {
-				if(i != x || j != y) {
-					int distance = Math.abs(x-i) + Math.abs(y-j);
-					
-					if(this.getUnit(i, j) instanceof Player && (distance <= Player.HEAL_RANGE)) {
-						players.add(getUnit(i,j));
-					}
-					else if(this.getUnit(i, j) instanceof Dragon) {
-						if(distance <= Player.ATTACK_RANGE) {
-							dragons.add(getUnit(i,j));
+		for (int i = 0; i < BattleField.MAP_WIDTH; i++) {
+			for (int j = 0; j < BattleField.MAP_HEIGHT; j++) {
+				if (i != x || j != y) {
+					int distance = Math.abs(x - i) + Math.abs(y - j);
+
+					if (this.getUnit(i, j) instanceof Player
+							&& (distance <= Player.HEAL_RANGE)) {
+						players.add(getUnit(i, j));
+					} else if (this.getUnit(i, j) instanceof Dragon) {
+						if (distance <= Player.ATTACK_RANGE) {
+							dragons.add(getUnit(i, j));
 						}
-						if(distance < closestEnemyDistance) {
+						if (distance < closestEnemyDistance) {
 							closestEnemyDistance = distance;
-							closestDragon = getUnit(i,j);
+							closestDragon = getUnit(i, j);
 						}
-					}												
+					}
 				}
 			}
 		}
-		
+
 		reply.put("players", players);
 		reply.put("dragons", dragons);
 		reply.put("playerX", x);
 		reply.put("playerY", y);
-		if(closestDragon != null) {
+		if (closestDragon != null) {
 			reply.put("enemyX", closestDragon.getX());
 			reply.put("enemyY", closestDragon.getY());
 		}
 		return reply;
 	}
 
-	private synchronized Message getDragonTargetsMessage(int x, int y, Message reply) {
+	private synchronized Message getDragonTargetsMessage(int x, int y,
+			Message reply) {
 		ArrayList<Unit> players = new ArrayList<Unit>();
 		int minX = x - Dragon.ATTACK_RANGE >= 0 ? x - Dragon.ATTACK_RANGE : 0;
-		int maxX = x + Dragon.ATTACK_RANGE <= BattleField.MAP_WIDTH ? x + Dragon.ATTACK_RANGE : BattleField.MAP_WIDTH;
+		int maxX = x + Dragon.ATTACK_RANGE <= BattleField.MAP_WIDTH ? x
+				+ Dragon.ATTACK_RANGE : BattleField.MAP_WIDTH;
 		int minY = y - Dragon.ATTACK_RANGE >= 0 ? y - Dragon.ATTACK_RANGE : 0;
-		int maxY = y + Dragon.ATTACK_RANGE <= BattleField.MAP_HEIGHT ? y + Dragon.ATTACK_RANGE : BattleField.MAP_HEIGHT;
-		for(int i = minX; i < maxX; i++) {
-			for(int j = minY; j < maxY; j++) {
-				if(i != x || j != y) {
-					int distance = Math.abs(x-i) + Math.abs(y-j);
-					if(this.getUnit(i, j) instanceof Player) {
-						if(distance <= Dragon.ATTACK_RANGE) {
-							players.add(getUnit(i,j));
+		int maxY = y + Dragon.ATTACK_RANGE <= BattleField.MAP_HEIGHT ? y
+				+ Dragon.ATTACK_RANGE : BattleField.MAP_HEIGHT;
+		for (int i = minX; i < maxX; i++) {
+			for (int j = minY; j < maxY; j++) {
+				if (i != x || j != y) {
+					int distance = Math.abs(x - i) + Math.abs(y - j);
+					if (this.getUnit(i, j) instanceof Player) {
+						if (distance <= Dragon.ATTACK_RANGE) {
+							players.add(getUnit(i, j));
 						}
-					}												
+					}
 				}
 			}
 		}
-		
+
 		reply.put("players", players);
 		String address = myAddress.split("/")[0];
 		reply.setMiddleman(reply.getRecipient());
 		reply.setMiddlemanPort(Integer.parseInt(address.split(":")[1]));
 		return reply;
 	}
-	
+
 	public int[] getAvailablePosition() {
 		int[] pos = null;
 
@@ -549,38 +550,36 @@ public class BattleField implements IBattleField {
 	private synchronized boolean removeUnit(String id) {
 		Unit unitToRemove = this.units.get(id);
 		if (unitToRemove == null) {
-			log("Unit with id: "+id+" could not be removed, no unit found");
+			log("Unit with id: " + id + " could not be removed, no unit found");
 			return false; // There was no unit here to remove
 		}
 		int x = unitToRemove.getX();
 		int y = unitToRemove.getY();
 		map[x][y] = null;
 		Unit removed = units.remove(unitToRemove);
-		
-		if(removed == null && map[x][y] == null) {
+
+		if (removed == null && map[x][y] == null) {
 			unitsChanged = true;
 			mapChanged = true;
 			return true;
-		}
-		else{
+		} else {
 			return false;
 		}
-	}	
-	
+	}
+
 	private boolean disconnectUnit(String id) {
-		if(units.get(id) == null) {
+		if (units.get(id) == null) {
 			return true;
 		}
 		boolean removed = removeUnit(id);
-		if(removed) {
-			log("Unit with id: "+id+" has disconnected.");
-		}
-		else {
-			log("Unit with id:"+id+" could not be disconnected.");
+		if (removed) {
+			log("Unit with id: " + id + " has disconnected.");
+		} else {
+			log("Unit with id:" + id + " could not be disconnected.");
 		}
 		return removed;
 	}
-	
+
 	/**
 	 * Get a unit from a position.
 	 * 
@@ -606,11 +605,11 @@ public class BattleField implements IBattleField {
 	public synchronized int getNewUnitID() {
 		return ++lastUnitID;
 	}
-	
+
 	public void setMyAddress(String myAddress) {
 		BattleField.myAddress = myAddress;
 	}
-	
+
 	public HashMap<String, String> getHelpers() {
 		return BattleField.helpers;
 	}
@@ -708,7 +707,6 @@ public class BattleField implements IBattleField {
 			return UnitType.player;
 		else if (getUnit(x, y) instanceof Dragon)
 			return UnitType.dragon;
-
 		else
 			return UnitType.undefined;
 
@@ -721,9 +719,25 @@ public class BattleField implements IBattleField {
 
 	@Override
 	public void setBackupAddress(String address) throws RemoteException {
-		backupAddress = address;
-		updateBackupServerForHelpers();
-		log("Backup address set to: " + address);
+		if (isBackupServerAlive(address)) {
+			backupAddress = address;
+			updateBackupServerForHelpers();
+			log("Backup address set to: " + address);
+		} else {
+			log("Backup address not set, because server is not online");
+		}
+	}
+
+	private boolean isBackupServerAlive(String address) {
+		try {
+			IBattleField RMIServer = (IBattleField) Naming.lookup("rmi://"
+					+ address);
+			RMIServer.ping();
+			return true;
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			log("Backup server not available");
+			return false;
+		}
 	}
 
 	private void updateBackupServerForHelpers() {
@@ -760,12 +774,12 @@ public class BattleField implements IBattleField {
 
 		if (unitsChanged)
 			snap.setUnits(units);
-		
+
 		if (helpersChanged) {
 			snap.setHelpers(helpers);
 		}
-		
-		if(dragonsChanged) {
+
+		if (dragonsChanged) {
 			snap.setDragons(dragons);
 		}
 
@@ -777,9 +791,9 @@ public class BattleField implements IBattleField {
 			backupAddress = null;
 			return;
 		}
-		
+
 		totalNumberOfAttemptedBackupUpdates += 1;
-		
+
 		try {
 			boolean updated = RMIServer.updateBackup(snap);
 			if (updated) {
@@ -791,27 +805,27 @@ public class BattleField implements IBattleField {
 			}
 		} catch (RemoteException e) {
 			totalNumberOfFailedBackupUpdates += 1;
-			e.printStackTrace();			
+			e.printStackTrace();
 		}
 
 	}
-	
+
 	private void metricsRunner() {
 		Runnable myRunnable = new Runnable() {
 
 			public void run() {
 				log("Metrics Runner running");
-				
+
 				while (true) {
 					try {
-						Thread.sleep(5000);	
-						
+						Thread.sleep(5000);
+
 						if (units.keySet().size() == 0) {
 							saveMetrics();
 							break;
 						}
-						
-					} catch (InterruptedException e) {	
+
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
@@ -820,8 +834,7 @@ public class BattleField implements IBattleField {
 		Thread thread = new Thread(myRunnable);
 		thread.start();
 	}
-	
-	
+
 	private void dragonRunner() {
 		Runnable myRunnable = new Runnable() {
 
@@ -830,15 +843,15 @@ public class BattleField implements IBattleField {
 				int dragons = numberOfDragons();
 				while (true) {
 					try {
-						Thread.sleep(500);	
+						Thread.sleep(500);
 						dragons = numberOfDragons();
-						if (dragons < NR_OF_DRAGONS) {							
-							spawnDragon();							
-						}  else {
+						if (dragons < NR_OF_DRAGONS) {
+							spawnDragon();
+						} else {
 							break;
 						}
-						
-					} catch (InterruptedException e) {	
+
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
@@ -847,11 +860,11 @@ public class BattleField implements IBattleField {
 		Thread thread = new Thread(myRunnable);
 		thread.start();
 	}
-		
+
 	private int numberOfDragons() {
 		return dragons.size();
 	}
-	
+
 	private void spawnDragon() {
 		String id = "d_" + lastUnitID;
 		DragonController dragonController = new DragonController(id, myAddress);
@@ -861,7 +874,7 @@ public class BattleField implements IBattleField {
 		this.dragons.put(id, dragonController.getDragon());
 		dragonsChanged = true;
 	}
-	
+
 	private void initBackupService() {
 		Runnable myRunnable = new Runnable() {
 
@@ -896,17 +909,17 @@ public class BattleField implements IBattleField {
 			this.units = snapshot.getUnits();
 			log("units: " + units.size());
 		}
-		
+
 		if (snapshot.getHelpers() != null) {
 			helpers = snapshot.getHelpers();
 			log("Helpers updated: " + helpers.size());
 		}
-		
+
 		if (snapshot.getDragons() != null) {
 			dragons = snapshot.getDragons();
 			log("Dragons updated: " + dragons.size());
 		}
- 		
+
 		return true;
 	}
 
@@ -931,7 +944,7 @@ public class BattleField implements IBattleField {
 	}
 
 	@Override
-	public boolean promoteBackupToMain() throws RemoteException {		
+	public boolean promoteBackupToMain() throws RemoteException {
 		if (!isBackup) {
 			isBackup = false;
 			initHelperChecker();
@@ -943,12 +956,13 @@ public class BattleField implements IBattleField {
 			return false;
 		}
 	}
-	
+
 	private void reInitDragons() {
 		log("DragonRunner running again");
-		Iterator<Entry<String, Unit>> dragons = this.dragons.entrySet().iterator();
-		
-		while (dragons.hasNext()) {	
+		Iterator<Entry<String, Unit>> dragons = this.dragons.entrySet()
+				.iterator();
+
+		while (dragons.hasNext()) {
 			Dragon current = (Dragon) dragons.next();
 			current.serverAddress = myAddress;
 			new DragonController(current);
@@ -965,28 +979,34 @@ public class BattleField implements IBattleField {
 	public void setBackup(boolean isBackup) {
 		this.isBackup = isBackup;
 	}
-	
+
 	private void log(String text) {
 		Log.log(myAddress, text);
 	}
-	
+
 	public void saveMetrics() {
 		this.endTime = System.currentTimeMillis();
 		logMetric("Total Messages Send: " + totalMessagesSend);
 		logMetric("Total Messages Received: " + totalMessagesReceived);
-		logMetric("Total Messages Failed To Send: " + totalMessagesFailedToSend );
-		logMetric("Total Messages Failed To Receive: " + totalMessagesFailedToReceive );
-		logMetric("Total Number of disconnected helpers: " + totalNumberOfDisconnectedHelpers );
-		
-		logMetric("Total Attempted backup updates: " + totalNumberOfAttemptedBackupUpdates );
-		logMetric("Total Successfull backup updates: " + totalNumberOfSuccessfullBackupUpdates );
-		logMetric("Total Failed backup updates: " + totalNumberOfFailedBackupUpdates );
-		
-		logMetric("Runtime: " + common.Common.getFormatedTime(endTime - startTime));
-		
+		logMetric("Total Messages Failed To Send: " + totalMessagesFailedToSend);
+		logMetric("Total Messages Failed To Receive: "
+				+ totalMessagesFailedToReceive);
+		logMetric("Total Number of disconnected helpers: "
+				+ totalNumberOfDisconnectedHelpers);
+
+		logMetric("Total Attempted backup updates: "
+				+ totalNumberOfAttemptedBackupUpdates);
+		logMetric("Total Successfull backup updates: "
+				+ totalNumberOfSuccessfullBackupUpdates);
+		logMetric("Total Failed backup updates: "
+				+ totalNumberOfFailedBackupUpdates);
+
+		logMetric("Runtime: "
+				+ common.Common.getFormatedTime(endTime - startTime));
+
 		saveHelperMetrics();
 	}
-	
+
 	private void saveHelperMetrics() {
 		Iterator<String> iterator = helpers.keySet().iterator();
 		while (iterator.hasNext()) {
@@ -995,10 +1015,10 @@ public class BattleField implements IBattleField {
 			logMetric(this.getHelperMetrics(key));
 		}
 	}
-	
+
 	private String getHelperMetrics(String helper) {
 		String res = "";
-		
+
 		IRunner RMIServer = null;
 		String urlServer = new String("rmi://" + helpers.get(helper) + "/"
 				+ helper);
@@ -1010,10 +1030,10 @@ public class BattleField implements IBattleField {
 		} catch (Exception e) {
 			// e.printStackTrace();
 		}
-		
+
 		return res;
 	}
-	
+
 	private void logMetric(String text) {
 		if (firstWrite) {
 			Log.logMetric(myAddress, "\n ################ \n");

@@ -1,6 +1,7 @@
 package client;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -14,6 +15,7 @@ import common.Common;
 import common.IBattleField;
 import common.Enums.Direction;
 import common.IPlayerController;
+import common.Log;
 
 public class ClientMain {
 
@@ -66,14 +68,14 @@ public class ClientMain {
 			reg.rebind(playerName, stub);
 			log(playerName, "PlayerController running, server: " + serverID
 					+ ", reg: " + reg.toString());
-			//printRegistry(reg.list());
+			// printRegistry(reg.list());
 			player.spawnPlayer();
-			
+
 			playerCommander(playerName);
-			
+
 		} catch (RemoteException e) {
 			e.printStackTrace();
-			
+
 			String playerName = null;
 			double lifespan = Integer.MAX_VALUE;
 
@@ -115,9 +117,9 @@ public class ClientMain {
 			reg.rebind(playerName, stub);
 			log(playerName, "PlayerController running, server: " + serverID
 					+ ", reg: " + reg.toString());
-			//printRegistry(reg.list());
+			// printRegistry(reg.list());
 			player.spawnPlayer();
-			
+
 			playerCommander(playerName);
 		}
 	}
@@ -137,11 +139,11 @@ public class ClientMain {
 						line = in.readLine();
 						String[] res = line.split(" ");
 						if (res.length > 0 && res[0].equals("m")) {
-							Direction dir =  Direction.values()[(int) (Direction.values().length * Math
-									.random())];
+							Direction dir = Direction.values()[(int) (Direction
+									.values().length * Math.random())];
 							movePlayer(player, dir);
 						}
-					} catch (Exception e) {
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 
@@ -158,11 +160,7 @@ public class ClientMain {
 					.lookup("rmi://" + helper_host + ":" + helper_port + "/"
 							+ player);
 			RMIServer.movePlayer(direction);
-		}  catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (NotBoundException e) {
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			e.printStackTrace();
 		}
 
@@ -185,9 +183,9 @@ public class ClientMain {
 			if (helper.equals("noServers")) {
 				log("", "No server online to connect to");
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			log("", "Not able to connect to main server");
+		} catch (RemoteException | MalformedURLException | NotBoundException e) {
+			System.err.println("Not able to connect to main server");
+			Log.log("", "Not able to connect to main server", false);
 		}
 
 		return helper;
@@ -196,10 +194,10 @@ public class ClientMain {
 	@SuppressWarnings("unused")
 	private static void printRegistry(String[] array) {
 		for (int i = 0; i < array.length; i++) {
-			log("","item[" + i + "]: " + array[i]);
+			log("", "item[" + i + "]: " + array[i]);
 		}
 	}
-		
+
 	private static void log(String serverID, String text) {
 		common.Log.log(serverID, text);
 	}

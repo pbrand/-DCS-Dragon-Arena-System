@@ -27,7 +27,7 @@ public class PlayerRunner implements IRunner {
 	private HashMap<String, String> clients;
 	private int battleFieldMapHeight = 0;
 	private int battleFieldMapWidth = 0;
-	
+
 	/**
 	 * Metrics
 	 */
@@ -41,7 +41,7 @@ public class PlayerRunner implements IRunner {
 	private int totalMessagesFailedToReceive;
 	private int totalChangeRequestsOfMainServer;
 	private int totalNumberOfMaxClients;
-	
+
 	private long startTime;
 	private long endTime;
 
@@ -68,7 +68,8 @@ public class PlayerRunner implements IRunner {
 			if (changeBackupToMainServer()) {
 				sendMessageToServer(msg);
 			} else {
-				e.printStackTrace();
+				System.err.println("Main server at: " + battleServerLocation
+						+ " is not available");
 				totalMessagesFailedSendToServer += 1;
 			}
 		}
@@ -138,7 +139,7 @@ public class PlayerRunner implements IRunner {
 			break;
 		case MessageRequest.disconnectAck:
 			sendMessageToClient(msg);
-			if((boolean) msg.get("disconnected")){
+			if ((boolean) msg.get("disconnected")) {
 				clients.remove(msg.getSender());
 			}
 			break;
@@ -180,7 +181,8 @@ public class PlayerRunner implements IRunner {
 			if (changeBackupToMainServer()) {
 				getBattleFieldInfo();
 			} else {
-				e.printStackTrace();
+				System.err.println("Main server at: " + battleServerLocation
+						+ " is not available");
 				totalMessagesFailedToReceive += 1;
 			}
 		}
@@ -252,7 +254,8 @@ public class PlayerRunner implements IRunner {
 			if (changeBackupToMainServer()) {
 				moveUnit(id, direction);
 			} else {
-				e.printStackTrace();
+				System.err.println("Main server at: " + battleServerLocation
+						+ " is not available");
 				totalMessagesFailedToReceive += 1;
 			}
 		}
@@ -294,7 +297,8 @@ public class PlayerRunner implements IRunner {
 			RMIServer.promoteBackupToMain();
 			return true;
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
-			e.printStackTrace();
+			Log.log(myAddress, "Backup battle server at: "
+					+ backupBattleServerLocation + " is not available");
 		}
 		return false;
 	}
@@ -310,28 +314,37 @@ public class PlayerRunner implements IRunner {
 	public void setMyAddress(String myAddress) {
 		this.myAddress = myAddress;
 	}
-	
+
 	public String getMetrics() {
 		this.endTime = System.currentTimeMillis();
 		String res = "\n";
-		res += ("[H] Total Number of Clients ever Connected: " + totalNumberOfMaxClients + "\n");
+		res += ("[H] Total Number of Clients ever Connected: "
+				+ totalNumberOfMaxClients + "\n");
 		res += ("[H] Total Number of Clients at the end: " + clients.size() + "\n");
 		res += ("[H] Total Messages Send: " + totalMessagesSend + "\n");
-		res += ("[H] Total Messages Send to Client: " + totalMessagesSendToClient + "\n");
-		res += ("[H] Total Messages Send to Server: " + totalMessagesSendToServer + "\n");
+		res += ("[H] Total Messages Send to Client: "
+				+ totalMessagesSendToClient + "\n");
+		res += ("[H] Total Messages Send to Server: "
+				+ totalMessagesSendToServer + "\n");
 		res += ("[H] Total Messages Received: " + totalMessagesReceived + "\n");
-		res += ("[H] Total Messages Failed To Send: " + totalMessagesFailedToSend + "\n" );
-		res += ("[H] Total Messages Failed To Send to Client: " + totalMessagesFailedSendToClient + "\n" );
-		res += ("[H] Total Messages Failed To Send to Server: " + totalMessagesFailedSendToServer + "\n" );
-		res += ("[H] Total Messages Failed To Receive: " + totalMessagesFailedToReceive + "\n" );
-		res += ("[H] Total CHangerequests of Main Server: " + totalChangeRequestsOfMainServer + "\n" );
-		res += ("[H] Runtime: " + common.Common.getFormatedTime(endTime - startTime) + "\n");
-		
+		res += ("[H] Total Messages Failed To Send: "
+				+ totalMessagesFailedToSend + "\n");
+		res += ("[H] Total Messages Failed To Send to Client: "
+				+ totalMessagesFailedSendToClient + "\n");
+		res += ("[H] Total Messages Failed To Send to Server: "
+				+ totalMessagesFailedSendToServer + "\n");
+		res += ("[H] Total Messages Failed To Receive: "
+				+ totalMessagesFailedToReceive + "\n");
+		res += ("[H] Total CHangerequests of Main Server: "
+				+ totalChangeRequestsOfMainServer + "\n");
+		res += ("[H] Runtime: "
+				+ common.Common.getFormatedTime(endTime - startTime) + "\n");
+
 		res += "\n" + getClientMetrics();
-		
+
 		return res;
 	}
-	
+
 	private String getClientMetrics() {
 		String res = "";
 		Iterator<String> iterator = clients.keySet().iterator();
@@ -341,11 +354,12 @@ public class PlayerRunner implements IRunner {
 		}
 		return res;
 	}
-	
+
 	private String getMetricOfClient(String client) {
 		IPlayerController RMIServer;
 		try {
-			RMIServer = (IPlayerController) Naming.lookup("rmi://" + this.myAddress.split("/")[0] + "/" + client);
+			RMIServer = (IPlayerController) Naming.lookup("rmi://"
+					+ this.myAddress.split("/")[0] + "/" + client);
 			return RMIServer.getMetrics();
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			e.printStackTrace();
