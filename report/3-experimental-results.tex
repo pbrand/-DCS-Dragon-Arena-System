@@ -2,8 +2,7 @@
 Unfortunately we were not able to utilize the DAS-4 system (due to an incompatible java version), however we tested the game when running on two different laptops over a local area network (LAN). These tests were after the initial deadline and therefore the testing part of the game had already been done. Therefore we decided to spend this chapter on how we wish we could have performed the experiments in the first place if these implementation problems hadn't delayed us this much. However we were able to collect some primitive data from some local experiments. These results will be discussed here as well.
 
 \subsection{Setup}
-The code of the DAS game, which was used for these experiments, is made publically available under the BSD new license and is
-is avaiable on: \url{https://github.com/pbrand/DCS-Dragon-Arena-System}. 
+The code of the DAS game, which was used for these experiments, is made publically available under the BSD new license and is avaiable on: \url{https://github.com/pbrand/DCS-Dragon-Arena-System}. 
 The license can be reviewed at: \url{https://github.com/pbrand/DCS-Dragon-Arena-System/blob/development/Game/LICENSE}
 For this experiment, the DAS-4 should be initialized with 5 compute-nodes. 
 One compute node should host the main server which initializes the battlefield. 
@@ -16,7 +15,7 @@ The purpose of causal consistency is to make sure that events that are causally 
 To measure this, it is necessary to assign a timestamp upon message creation. 
 Additionally, each message is provided with its own unique identifier. 
 Every message which is received should be stored in a list and assigned a timestamp which represents the time of arrival.
-Whenever a new message is received, its timestamps should be checked with the other timestamps of messages in the list in order to check causality. If the newly received message was sent before a message which has already been received, and these messages are causally related, then the causality constraint is certainly not met.
+Whenever a new message is received, its timestamps should be checked with the other timestamps of messages in the list in order to check causality. If the newly received message was sent before a message which had already been received earlier, and these messages are causally related, then the causality constraint is certainly not met.
 In this project, a causal relationship is defined by: a certain unit \emph{A} performs an action which has an effect on the state of a certain unit \emph{B}, for instance if a player \emph{A} attacks a dragon \emph{B}.
 
 It is also important to measure how consistent the backup of the battlefield is with the battlefield on the main server.
@@ -54,7 +53,7 @@ The CPU and memory usage are also recorded in order to find the performance bott
 For fault tolerance the system also needs to be tested for both the helpers and the main server.
 To test the tolerance of the system when helpers crash, tests are run with multiple helper servers which are killed at random to simulate crashes.
 It is then possible to measure the number of messages which were tried to be sent from the server and the number of messages which were actually sent to a helper server after one was randomly killed.
-This tests needs to be run multiple times and the different outcomes should be compared in order to get a view of the number of failed sent messages.
+These tests need to be run multiple times and the different outcomes should be compared in order to get a view of the number of failed sent messages.
 If this value is low, it is probably safe to conclude that the helper server's fault-tolerance is acceptable.
 
 The same experiment should be done for measuring the tolerance of the main server.
@@ -72,14 +71,14 @@ By doing so, the running classes need to call a different (local) server in orde
 % Consistency
 One important issue in a distributed game is keeping the game-state consistent for every client and server.
 This means that battlefield needs to be somehow updated for every client in order to be able to play the game.
-As stated in the previous chapter, the whenever a client sends a request, the required information is returned to the helper server the client is connected to.
+As stated in the previous chapter, whenever a client sends a request, the required information is returned to the helper server the client is connected to.
 The helpers server itself does not maintain a local state of the game, but only computes results.
 However, the battlefield does maintain a state of the game. 
 Therefore it is important for the master server to maintain a correct state of the game, which is done by sending messages whenever a Unit performs an action and also when certain parts of the game state need to be updated.
 
 As stated, the fancy measurements were not performed during this project. 
 However, we did collect some results for helpers and the main server.
-The number of messages which were sent and received are logged and as well as the number of messages which were failed to send.
+The number of messages which were sent and received are logged as well as the number of messages which were failed to send.
 These results are from tests in which the system is spawning the players by reading a file from the Game Trace Archive.
 No helper nodes were killed.
 

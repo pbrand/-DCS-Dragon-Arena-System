@@ -6,7 +6,7 @@ However, at a certain point in the implementation it came to our knowledge that 
 At least not in this case for the implementation of the Dragon Arena System.
 
 In order for the helper servers to take load of from the main and perform computation on behalf of the main server, the helper servers had to do way more messaging in order to make a single action happen than was expected.
-A possible solution for this would be to have multiple servers with battlefield to which users can connect.
+A possible solution for this would be to have multiple servers with their own battlefields to which users can connect.
 The battlefield can then handle the actions of the clients by himself, this would eliminate the need for a helper server, thus eliminating a layer of communication and therefore making the game a bit faster (at least that's what we expect). 
 This also means that there needs to be some sort of synchronization between the different main servers.
 A possible way to do so: check if the move is possible on all the servers, then lock the area which needs to be updated, and then propagate the update further to other battlefields and release the area.
@@ -21,7 +21,7 @@ To reduce this number of messaging, a part of the computation was moved back to 
 This made the system less distributed than we actually wanted it to be.
 
 \subsection{The use of a Distributed DAS}
-The main question still is, if it is useful for WantGame BV to use a distributed system for the game.
+The main question is still, if it is useful for WantGame BV to use a distributed system for the game.
 Even though the implementation did not go as planned, the game still performs well under good conditions.
 A different architecture as proposed earlier in this section would be better of course, but this does not mean that the current implementation does not work at all.
 The system was also tested with a 100 players and 20 dragons and still performed very well.
@@ -32,7 +32,7 @@ So it cannot be said for sure that the game will still perform well with when th
 \subsection{Confession}
 In the final implementation of the game, the backup service for the main server had to be disabled (partially).
 The backup server is able to run but not keep track of the map and the units. 
-When the main server goes down, the backup server will start a clean battlefield instead of a restored version of the battlefield.
+When the main server goes down, the backup server starts a clean battlefield instead of a restored version of the battlefield.
 In order to support the Dragons to be able to send messages it was made a remote object and registered to the RMI registry on the main servers.
 This however caused the backup to fail when trying to backup a spawned Dragon object, because it was bound on the main server.
 In order to fix this, a Dragon controller has to be make in order to control a Dragon. 
