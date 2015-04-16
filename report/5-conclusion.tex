@@ -8,21 +8,3 @@ Besides the system being scalable, it is also fault-tolerant up to a certain lev
 Even though the implementation isn't fully distributed, it does not mean that the current design (regardless of its implementation) is all that bad. 
 The idea of relieving the main server of some load would still be a nice feature, especially if the computations of the game would have been more resource demanding. 
 
- \section{Evaluation}
- This section describes our personal experience of the project, where mainly the encountered pitfalls are discussed.
-
-As we experienced, one might easily get tempted to go too much into detail right from the start of the project.
-After the written part about \emph{Consistency and Replication}, the first thing we did was focus on the algorithms, for implementing \emph{causal consistency} for instance. 
-At some point we came to the conclusion that this took too much time if we wished to follow this approach for all our design choices, hence we started looking for libraries that could provide us with an implementation. 
-In the end, it was clear that this should not be the focus of the project and therefore an initial (primitive) distributed concept was designed and eventually implemented. 
-Unfortunately this costed us a lot of time that is not represented in the final results (e.g. this paper and the implementation of the system).
-
-Another problem that we faced was our decision of refactoring the given codebase. 
-A lot of time was spent on trying to make the given code work, instead of developing a new system from scratch while keeping the given implementation as a valuable resource in mind.
-In the future we would start with designing a basic concept and simply implement that concept. After the basic functionality, like for example game logic, would run, we would expand our horizon and look at the more advanced topics in order to improve the system. These topics might include constraints for consistency, scalability and performance for instance.
-With this approach it is very likely that the initial design has to be revised when the more advanced topics are implemented, but at least a basic working version can always be retreived by version control.
-
-\section{Open-source}
-We have made the code of our DAS game open-source under the BSD new license.
-Our code is avaiable on: \url{https://github.com/pbrand/DCS-Dragon-Arena-System} (currently on the development branch)
-Link to license: \url{https://github.com/pbrand/DCS-Dragon-Arena-System/blob/development/Game/LICENSE} (currently on the development branch)
