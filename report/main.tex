@@ -41,14 +41,25 @@ The communication between the servers and the clients and servers will be done v
 \section{Introduction}
 
 %(recommended size, including points 1 and 2: 1 page): describe the problem, the existing systems and/or tools about which you know (related work), the system you are about to implement, and the structure of the remainder of the article. Use one short paragraph for each.
-The Dragon Arena System (DAS) is an online warfare game of WantGame BV.
-WantGame BV wants to implement a distributed version of the DAS in order to be able to support multiple concurrent users and make the system scalable.
-The game will be implemented in Java and will use Remote Method Invocation (RMI) in order to support remote calls to other clients and servers.
 
-This report will first address the application itself and its background.
-Afterwards, the design and architecture of the proposed system which is going to be implemented will be discussed. 
-The various high level components of the game and how they communicate will be explained as well.
-In the third section the results of the various performed tests are presented and at last there will be a discussion about the findings of our work.
+% The problem
+The Dragon Arena System (DAS) is a (non-distributed) online warfare game of WantGame BV.
+Now, WantGame BV wishes to implement a new, distributed, version of the DAS in order to be able to support many concurrent users.
+However, designing and implementing a distributed system which has to support massive amounts of concurrent users is rather complex as it introduces many unknowns regarding for example: performance, scalability and consistency.
+
+% Existing systems and/or tools which you know
+A previous non-distributed version of a DAS has been implemented by a previous consultant of WantGame BV which was studied carefully before the design of the new distributed DAS.
+The new Dragon Arena System game is implemented in Java and uses Remote Method Invocation (RMI) in order to support remote calls to other clients and servers.
+
+% The system you are about to implement
+The newly designed and implemented DAS aims to be scalable in the sense that it needs to run a service of online warfare between computer- controlled dragons and hundreds of clients, who are represented by virtual knights. % Maybe extend it with the performance-cost ratio which is mentioned in the exercise???
+
+% Structure of the remainder of the article
+This report starts with addressing the application itself and its background.
+Afterwards, the design and architecture of the proposed system which is implemented is discussed.
+The various high level components of the game and how they communicate are explained as well.
+In the third section the results of the various performed tests are presented. 
+Furthermore, a discussion about the findings of our work can be found in the fourth section and finally it ends with a conclusion in section 5. In the appendix a list with spent hours is present as well as a personal evaluation of this project.
 
 \newpage
 
