@@ -90,6 +90,7 @@ public class PlayerRunner implements IRunner {
 			totalMessagesSendToClient += 1;
 		} catch (Exception e) {
 			e.printStackTrace();
+			Log.log(myAddress, "Message " + msg.getMesssageID() + " was failed to send to: " + urlServer);
 			totalMessagesFailedToSend += 1;
 			totalMessagesFailedSendToClient += 1;
 		}
@@ -100,59 +101,71 @@ public class PlayerRunner implements IRunner {
 		Log.log(myAddress, "Received: " + msg);
 		totalMessagesReceived += 1;
 		switch (msg.getRequest()) {
-		case MessageRequest.spawnUnit:
+		case MessageRequest.spawnUnit: {
 			try {
-				clients.put(msg.getSender(), RemoteServer.getClientHost() + ":"
-						+ msg.getMiddlemanPort());
-				totalNumberOfMaxClients += 1;
-			} catch (ServerNotActiveException e) {
+				registerWithServer(
+						msg.getSender(),
+						RemoteServer.getClientHost() + ":"
+								+ msg.getSendersPort());
+			} catch (ServerNotActiveException | RemoteException e) {
 				e.printStackTrace();
 			}
 			sendMessageToServer(msg);
 			break;
-		case MessageRequest.disconnectUnit:
-			disconnectUser(msg.getSender());
+		}
+		case MessageRequest.disconnectUnit: {
+			disconnectUser(msg);
 			break;
-		case MessageRequest.moveUnit:
+		}
+		case MessageRequest.moveUnit: {
 			moveUnit(msg.getSender(), (Direction) msg.get("direction"));
 			break;
-		case MessageRequest.spawnAck:
+		}
+		case MessageRequest.spawnAck: {
 			sendMessageToClient(msg);
 			break;
-		case MessageRequest.getTargets:
+		}
+		case MessageRequest.getTargets: {
 			msg.put("unitID", msg.getSender());
 			sendMessageToServer(msg);
 			break;
-		case MessageRequest.returnTargets:
+		}
+		case MessageRequest.returnTargets: {
 			sendMessageToClient(msg);
 			break;
-		case MessageRequest.healDamage:
+		}
+		case MessageRequest.healDamage: {
 			msg.put("unitID", msg.getSender());
 			sendMessageToServer(msg);
 			break;
-		case MessageRequest.dealDamage:
+		}
+		case MessageRequest.dealDamage: {
 			msg.put("unitID", msg.getSender());
 			sendMessageToServer(msg);
 			break;
-		case MessageRequest.gameOver:
+		}
+		case MessageRequest.gameOver: {
 			sendMessageToClient(msg);
 			break;
-		case MessageRequest.disconnectAck:
+		}
+		case MessageRequest.disconnectAck: {
 			sendMessageToClient(msg);
 			if ((boolean) msg.get("disconnected")) {
-				clients.remove(msg.getSender());
+				clients.remove(msg.getRecipient());
 			}
 			break;
-		default:
+		}
+		default: {
 			break;
+		}
 		}
 	}
 
-	private void disconnectUser(String id) {
+	private void disconnectUser(Message msgOld) {
 		// Send disconnect message to the main server.
-		Message msg = new Message(battleServer);
+		Message msg = msgOld;
 		msg.setRequest(MessageRequest.disconnectUnit);
-		msg.put("unitID", id);
+		msg.put("unitID", msgOld.getSender());
 		this.sendMessageToServer(msg);
 	}
 
@@ -271,7 +284,8 @@ public class PlayerRunner implements IRunner {
 			throws RemoteException {
 		this.clients.put(player, address);
 		totalNumberOfMaxClients += 1;
-
+		Log.log(myAddress, "Player: " + player
+				+ " now registered to this helper");
 	}
 
 	private synchronized boolean changeBackupToMainServer() {
@@ -362,7 +376,8 @@ public class PlayerRunner implements IRunner {
 					+ this.myAddress.split("/")[0] + "/" + client);
 			return RMIServer.getMetrics();
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			Log.log(myAddress, "Unable to retreive metrics of " + client + ", probably disconnected");
 		}
 		return "";
 	}

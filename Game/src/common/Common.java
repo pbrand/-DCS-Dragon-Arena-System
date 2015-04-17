@@ -16,5 +16,11 @@ public class Common {
 	public static String getFormatedTime(long time) {
 		return ((time) / (1000 * 60)) % 60 + " m " + ((time) / (1000)) % 60 + " s";
 	}
+	
+	public static int randInt(int min, int max) {
+	    Random rand = new Random();
+	    int randomNum = rand.nextInt((max - min) + 1) + min;
+	    return randomNum;
+	}
 
 }

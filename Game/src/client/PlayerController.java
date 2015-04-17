@@ -8,6 +8,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 
+import server.master.GameState;
 import common.Enums.Direction;
 import common.IPlayerController;
 import common.IRunner;
@@ -21,8 +22,10 @@ public class PlayerController implements IPlayerController {
 	private String battleServerLocation;
 	private String battleServer;
 	private String battleHelper;
-	private int port; // helper port
-	private String host; // helper host
+	private int helperPort; // helper port
+	private String helperHost; // helper host
+	private int myPort;
+	private String myHost;
 
 	private boolean running = false;
 	private boolean targets = false;
@@ -30,9 +33,9 @@ public class PlayerController implements IPlayerController {
 	private ArrayList<IUnit> dragons;
 	private int x;
 	private int y;
-	/* Reaction speed of the player
-	 * This is the time needed for the player to take its next turn.
-	 * Measured in half a seconds x GAME_SPEED.
+	/*
+	 * Reaction speed of the player This is the time needed for the player to
+	 * take its next turn. Measured in half a seconds x GAME_SPEED.
 	 */
 	protected int timeBetweenTurns;
 	private int closestEnemyX;
@@ -41,7 +44,7 @@ public class PlayerController implements IPlayerController {
 	private boolean closestEnemy;
 	public static final int MIN_TIME_BETWEEN_TURNS = 2;
 	public static final int MAX_TIME_BETWEEN_TURNS = 7;
-	
+
 	/**
 	 * Metrics
 	 */
@@ -50,21 +53,23 @@ public class PlayerController implements IPlayerController {
 	private int totalMessagesFailedToSend;
 	private int totalMessagesFailedToReceive;
 	private int totalNumberOfHelperSwitched;
-	
+
 	private long startTime;
 	private long endTime;
 	private boolean requestedDisconnect = false;
 	private boolean disconnectAck = false;
 	private boolean disconnectCheckerStarted = false;
-	
-	public PlayerController(String playerID, String host, int port,
+
+	public PlayerController(String playerID, String helperHost, int helperPort,
 			String battle_helper, String battleServerLocation,
 			String battle_server, double lifespan) {
-		this(playerID, host, port, battle_helper, battleServerLocation, battle_server);
+		this(playerID, helperHost, helperPort, battle_helper,
+				battleServerLocation, battle_server);
 		this.lifespan = lifespan;
-		
+
 		/* Create a random delay */
-		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
+		timeBetweenTurns = (int) (Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS))
+				+ MIN_TIME_BETWEEN_TURNS;
 	}
 
 	public PlayerController(String playerID, String host, int port,
@@ -72,145 +77,141 @@ public class PlayerController implements IPlayerController {
 			String battle_server) {
 		startTime = System.currentTimeMillis();
 		this.playerID = playerID;
-		this.port = port;
-		this.host = host;
+		this.helperPort = port;
+		this.helperHost = host;
 		this.battleHelper = battle_helper;
 		this.battleServer = battle_server;
 		this.battleServerLocation = battleServerLocation;
-		
+
 		/* Create a random delay */
-		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
+		timeBetweenTurns = (int) (Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS))
+				+ MIN_TIME_BETWEEN_TURNS;
 	}
 
 	public void run() {
 		this.setRunning(true);
 
 		int i = 0;
-		int life = (int) Math.round(lifespan/ 100);
+		int life = (int) Math.round(lifespan / 100);
 		// This is an infinite loop until it receives a message that it
 		// should stop. That's tricky.
 		while (/* GameState.getRunningState() && */this.running) {
 			i += 1;
-				/* Sleep while the player is considering its next move */
-				//Thread.sleep(1000);
-				try {
-					Thread.sleep((int)(timeBetweenTurns * 500/* * GameState.GAME_SPEED*/));
-					
-					if (i > 20) {
-						//disconnectPlayer();
+			/* Sleep while the player is considering its next move */
+			// Thread.sleep(1000);
+			try {
+				Thread.sleep((int) (timeBetweenTurns * 500 * GameState.GAME_SPEED));
+
+				/*
+				 * if (i > 20) { //disconnectPlayer(); break; }
+				 */
+				this.requestTargets();
+				// Wait a while if the request from the server is not yet
+				// answered.
+				int attempts = 0;
+				while (!this.targets) {
+					if (attempts < 10) {
+						Thread.sleep(5);
+					} else {
 						break;
 					}
-					this.requestTargets();
-					// Wait a while if the request from the server is not yet answered.
-					int attempts = 0;
-					while(!this.targets) {
-						if(attempts < 10) {
-							Thread.sleep(5);
-						}
-						else {
-							break;
-						}
-						attempts++;
-					}
-					if(this.targets) {
-						// set targets to false again for the next iteration
-						this.targets = false;
-						
-						boolean action = false;
-						if(players.size() != 0) {
-							for(IUnit target : players) {
-								if(target.getHitPoints() > 0 && (double) target.getHitPoints() / (double) target.getMaxHitPoints() < 0.5) {
-									healDamage(target.getX(), target.getY());
-									action = true;
-									break;
-								}
-							}
-						}
-						if(!action) {
-							if(dragons.size() != 0) {
-								int minimumHealth = Integer.MAX_VALUE;
-								IUnit dragonToSlay = null;
-								for(IUnit target : dragons) {
-									if(target.getHitPoints() < minimumHealth){
-										minimumHealth = target.getHitPoints();
-										dragonToSlay = target;
-									}
-								}
-								this.dealDamage(dragonToSlay.getX(), dragonToSlay.getY());
-							}
-							// Move closer to a dragon.
-							else if(this.closestEnemy){
-								this.closestEnemy = false;
-								// Randomly choose one of the four wind directions to move to if
-								// there are no units present	
-								Direction direction;
-								int dX = this.x - this.closestEnemyX;
-								int dY = this.y - this.closestEnemyY;
-								if(dX == 0) {
-									if(dY > 0) {
-										direction = Direction.up;
-									}
-									else {
-										direction = Direction.down;
-									}
-								}
-								else if(dY == 0) {
-									if(dX > 0) {
-										direction = Direction.left;
-									}
-									else {
-										direction = Direction.right;
-									}									
-								}
-								else if(Math.abs(dY) < Math.abs(dX)) {
-									if(dY > 0) {
-										direction = Direction.up;
-									}
-									else {
-										direction = Direction.down;
-									}
-								}
-								else {	
-									if(dX > 0) {
-										direction = Direction.left;
-									}
-									else {
-										direction = Direction.right;
-									}
-								}
-								
-								movePlayer(direction);
-							}
-							else{
-//								Direction direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
-//								movePlayer(direction);
-								// If no dragons are present, the game is over so disconnect
-								disconnect();
-								this.running = false;
+					attempts++;
+				}
+				if (this.targets) {
+					// set targets to false again for the next iteration
+					this.targets = false;
+
+					boolean action = false;
+					if (players.size() != 0) {
+						for (IUnit target : players) {
+							if (target.getHitPoints() > 0
+									&& (double) target.getHitPoints()
+											/ (double) target.getMaxHitPoints() < 0.5) {
+								healDamage(target.getX(), target.getY());
+								action = true;
+								break;
 							}
 						}
 					}
-					
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				};
+					if (!action) {
+						if (dragons.size() != 0) {
+							int minimumHealth = Integer.MAX_VALUE;
+							IUnit dragonToSlay = null;
+							for (IUnit target : dragons) {
+								if (target.getHitPoints() < minimumHealth) {
+									minimumHealth = target.getHitPoints();
+									dragonToSlay = target;
+								}
+							}
+							this.dealDamage(dragonToSlay.getX(),
+									dragonToSlay.getY());
+						}
+						// Move closer to a dragon.
+						else if (this.closestEnemy) {
+							this.closestEnemy = false;
+							// Randomly choose one of the four wind directions
+							// to move to if
+							// there are no units present
+							Direction direction;
+							int dX = this.x - this.closestEnemyX;
+							int dY = this.y - this.closestEnemyY;
+							if (dX == 0) {
+								if (dY > 0) {
+									direction = Direction.up;
+								} else {
+									direction = Direction.down;
+								}
+							} else if (dY == 0) {
+								if (dX > 0) {
+									direction = Direction.left;
+								} else {
+									direction = Direction.right;
+								}
+							} else if (Math.abs(dY) < Math.abs(dX)) {
+								if (dY > 0) {
+									direction = Direction.up;
+								} else {
+									direction = Direction.down;
+								}
+							} else {
+								if (dX > 0) {
+									direction = Direction.left;
+								} else {
+									direction = Direction.right;
+								}
+							}
+
+							movePlayer(direction);
+						} else {
+							// If no dragons are present, the game is over so
+							// disconnect
+							disconnect();
+							this.running = false;
+						}
+					}
+				}
+
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			;
 
 			if (i > life) {
 				disconnect();
 				break;
 			}
-			if(!disconnectAck && requestedDisconnect) {
+			if (!disconnectAck && requestedDisconnect) {
 				disconnectChecker();
 			}
 			/* Stop if the player runs out of hitpoints */
 			// Receive a message here?? (if hitpoints <= 0) -> then set running
 			// to false so that the mainloop quits.
 		}
-		//System.out.println("Player: "+playerID+" has stopped running and requested disconnect.");
+		// System.out.println("Player: "+playerID+" has stopped running and requested disconnect.");
 	}
 
 	private void healDamage(int x, int y) {
-		Message heal = createHealDamageMessage(x,y);
+		Message heal = createHealDamageMessage(x, y);
 		log(heal.toString());
 		sendMessage(heal);
 	}
@@ -222,9 +223,9 @@ public class PlayerController implements IPlayerController {
 		msg.put("y", y);
 		return msg;
 	}
-	
+
 	private void dealDamage(int x, int y) {
-		Message attack = createDealDamageMessage(x,y);
+		Message attack = createDealDamageMessage(x, y);
 		log(attack.toString());
 		sendMessage(attack);
 	}
@@ -242,7 +243,7 @@ public class PlayerController implements IPlayerController {
 		log(spawn.toString());
 		sendMessage(spawn);
 	}
-	
+
 	public void disconnect() {
 		this.requestedDisconnect = true;
 		Message disconnect = createDisconnectMessage();
@@ -255,7 +256,7 @@ public class PlayerController implements IPlayerController {
 		msg.setRequest(MessageRequest.spawnUnit);
 		return msg;
 	}
-	
+
 	private Message createDisconnectMessage() {
 		Message msg = createMessage(battleServer);
 		msg.setRequest(MessageRequest.disconnectUnit);
@@ -283,10 +284,10 @@ public class PlayerController implements IPlayerController {
 	private Message createRequestTargetsMessage() {
 		Message msg = createMessage(battleServer);
 		msg.setRequest(MessageRequest.getTargets);
-		
+
 		return msg;
-	}	
-	
+	}
+
 	private void setRunning(boolean running) {
 		this.running = running;
 	}
@@ -295,8 +296,8 @@ public class PlayerController implements IPlayerController {
 	public void sendMessage(Message msg) {
 		msg.setSender(playerID);
 		IRunner RMIServer = null;
-		String urlServer = new String("rmi://" + host + ":" + port + "/"
-				+ battleHelper);
+		String urlServer = new String("rmi://" + helperHost + ":" + helperPort
+				+ "/" + battleHelper);
 
 		// Bind to RMIServer
 		try {
@@ -337,7 +338,7 @@ public class PlayerController implements IPlayerController {
 			this.dragons = (ArrayList<IUnit>) msg.get("dragons");
 			this.x = (int) msg.get("playerX");
 			this.y = (int) msg.get("playerY");
-			if(msg.get("enemyX") != null && msg.get("enemyY") != null) {
+			if (msg.get("enemyX") != null && msg.get("enemyY") != null) {
 				this.closestEnemyX = (int) msg.get("enemyX");
 				this.closestEnemyY = (int) msg.get("enemyY");
 				this.closestEnemy = true;
@@ -349,11 +350,10 @@ public class PlayerController implements IPlayerController {
 			this.disconnect();
 			break;
 		case MessageRequest.disconnectAck:
-			if((boolean) msg.get("disconnected")) {
+			if ((boolean) msg.get("disconnected")) {
 				this.disconnectAck = true;
 				this.requestedDisconnect = false;
-			}
-			else {
+			} else {
 				disconnect();
 			}
 			break;
@@ -362,12 +362,12 @@ public class PlayerController implements IPlayerController {
 		}
 
 	}
-	
+
 	private void disconnectChecker() {
 		if (disconnectCheckerStarted) {
 			return;
 		}
-		
+
 		Runnable runnable = new Runnable() {
 
 			@Override
@@ -382,9 +382,9 @@ public class PlayerController implements IPlayerController {
 						disconnect();
 					}
 				}
-				
+
 			}
-			
+
 		};
 		Thread thread = new Thread(runnable);
 		thread.start();
@@ -394,8 +394,10 @@ public class PlayerController implements IPlayerController {
 	private Message createMessage(String recipient) {
 		Message msg = new Message(recipient);
 		msg.setSender(playerID);
+		msg.setSenderHost(myHost);
+		msg.setSendersPort(myPort);
 		msg.setMiddleman(battleHelper);
-		msg.setMiddlemanPort(port);
+		msg.setMiddlemanPort(helperPort);
 
 		return msg;
 	}
@@ -412,49 +414,72 @@ public class PlayerController implements IPlayerController {
 
 		String[] newHelper = res.split(":");
 		this.battleHelper = newHelper[0];
-		this.host = newHelper[1];
-		this.port = Integer.parseInt(newHelper[2]);
+		this.helperHost = newHelper[1];
+		this.helperPort = Integer.parseInt(newHelper[2]);
 
 		try {
-			Registry reg = LocateRegistry.getRegistry(host, port);
+			Registry reg = LocateRegistry.getRegistry(helperHost, helperPort);
 			reg.rebind(this.playerID, this);
-		} catch (RemoteException e)  {
+		} catch (RemoteException e) {
 			e.printStackTrace();
 			return reset;
 		}
 
-		String urlServer = new String("rmi://" + host + ":" + port + "/"
-				+ battleHelper);
+		String urlServer = new String("rmi://" + helperHost + ":" + helperPort
+				+ "/" + battleHelper);
 
 		try {
 			IRunner RMIServer = (IRunner) Naming.lookup(urlServer);
-			RMIServer.registerWithServer(this.playerID, host + ":" + "/");
+			RMIServer.registerWithServer(this.playerID, myHost + ":" + myPort
+					+ "/");
 			totalNumberOfHelperSwitched += 1;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		log("Reset succesfull, server: " + host + ":" + port);
+		log("Reset succesfull, server: " + helperHost + ":" + helperPort);
 		reset = true;
 
 		return reset;
 	}
-	
+
 	public String getMetrics() {
 		this.endTime = System.currentTimeMillis();
 		String res = "\n";
 		res += ("[" + playerID + "] Total Messages Send: " + totalMessagesSend + "\n");
-		res += ("[" + playerID + "] Total Messages Received: " + totalMessagesReceived + "\n");
-		res += ("[" + playerID + "] Total Messages Failed To Send: " + totalMessagesFailedToSend + "\n" );
-		res += ("[" + playerID + "] Total Messages Failed To Receive: " + totalMessagesFailedToReceive + "\n" );
-		res += ("[" + playerID + "] Total Times Helpers switched: " + totalNumberOfHelperSwitched + "\n" );
-		res += ("[" + playerID + "] Runtime: " + common.Common.getFormatedTime(endTime - startTime) + "\n");
-		
+		res += ("[" + playerID + "] Total Messages Received: "
+				+ totalMessagesReceived + "\n");
+		res += ("[" + playerID + "] Total Messages Failed To Send: "
+				+ totalMessagesFailedToSend + "\n");
+		res += ("[" + playerID + "] Total Messages Failed To Receive: "
+				+ totalMessagesFailedToReceive + "\n");
+		res += ("[" + playerID + "] Total Times Helpers switched: "
+				+ totalNumberOfHelperSwitched + "\n");
+		res += ("[" + playerID + "] Runtime: "
+				+ common.Common.getFormatedTime(endTime - startTime) + "\n");
+
 		return res;
 	}
-	
+
+	@SuppressWarnings("unused")
+	private void killSelf() {
+		try {
+			Thread.sleep(5000);
+			System.exit(0);
+		} catch (InterruptedException e) {
+		}
+	}
+
 	private void log(String text) {
-		common.Log.log(host + ":" + port + "/" + playerID, text);
+		common.Log.log(myHost + ":" + myPort + "/" + playerID, text);
+	}
+
+	public void setMyPort(int myPort) {
+		this.myPort = myPort;
+	}
+
+	public void setMyHost(String myHost) {
+		this.myHost = myHost;
 	}
 
 }

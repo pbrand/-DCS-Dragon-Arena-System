@@ -21,10 +21,13 @@ public class ClientMain {
 
 	private static String helper_host;
 	private static int helper_port;
+	private static String myAddress; // host:port
+	private static int min = 5000;
+	private static int max = 60000;
 
 	public static void main(String[] args) throws RemoteException {
 
-		IPlayerController player = null;
+		IPlayerController playerController = null;
 		IPlayerController stub = null;
 		try {
 			String playerName = null;
@@ -55,72 +58,31 @@ public class ClientMain {
 			helper_host = helper[1];
 			helper_port = Integer.parseInt(helper[2]);
 
-			log(playerName, "host: " + helper_host + ":" + helper_port);
+			playerController = new PlayerController(playerName, helper_host,
+					helper_port, battle_helper, battleServerLocation,
+					battleServer, lifespan);
+			stub = (IPlayerController) UnicastRemoteObject.exportObject(
+					playerController, Common.randInt(min, max));
 
-			player = new PlayerController(playerName, helper_host, helper_port,
-					battle_helper, battleServerLocation, battleServer, lifespan);
+			log(serverID, "stub: " + stub + " playername: " + playerName
+					+ " hash: " + System.identityHashCode(playerController));
 
-			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
-					0);
-
-			Registry reg = LocateRegistry.createRegistry(helper_port);
+			Registry reg = LocateRegistry.createRegistry(Common.randInt(min, max));
 
 			reg.rebind(playerName, stub);
 			log(playerName, "PlayerController running, server: " + serverID
 					+ ", reg: " + reg.toString());
-			// printRegistry(reg.list());
-			player.spawnPlayer();
+			myAddress = reg.toString().split("endpoint:\\[")[1].split("\\]")[0];
+
+			playerController.setMyHost(myAddress.split(":")[0]);
+			playerController
+					.setMyPort(Integer.parseInt(myAddress.split(":")[1]));
+			playerController.spawnPlayer();
 
 			playerCommander(playerName);
 
 		} catch (RemoteException e) {
 			e.printStackTrace();
-
-			String playerName = null;
-			double lifespan = Integer.MAX_VALUE;
-
-			if (args.length < 2) {
-				playerName = "p_" + Common.randomString(10);
-			} else {
-				playerName = args[1];
-				lifespan = Double.parseDouble(args[2]);
-			}
-
-			String serverID = playerName;
-
-			String battleServer = "main_battle_server";
-			/**
-			 * Location should be provided in host:port format
-			 */
-			String battleServerLocation = args[0];
-			String res = getHelperServer(battleServerLocation, battleServer);
-			if (res == null || res.equals("noServers")) {
-				return;
-			}
-
-			String[] helper = res.split(":");
-
-			String battle_helper = helper[0];
-			helper_host = helper[1];
-			helper_port = Integer.parseInt(helper[2]);
-
-			log(playerName, "host: " + helper_host + ":" + helper_port);
-
-			player = new PlayerController(playerName, helper_host, helper_port,
-					battle_helper, battleServerLocation, battleServer, lifespan);
-
-			stub = (IPlayerController) UnicastRemoteObject.exportObject(player,
-					0);
-
-			Registry reg = LocateRegistry.getRegistry(helper_port);
-
-			reg.rebind(playerName, stub);
-			log(playerName, "PlayerController running, server: " + serverID
-					+ ", reg: " + reg.toString());
-			// printRegistry(reg.list());
-			player.spawnPlayer();
-
-			playerCommander(playerName);
 		}
 	}
 
@@ -189,6 +151,15 @@ public class ClientMain {
 		}
 
 		return helper;
+	}
+
+	private static Registry createOrGetRegistry(int port)
+			throws RemoteException {
+		try {
+			return LocateRegistry.createRegistry(0);
+		} catch (RemoteException e) {
+			return LocateRegistry.getRegistry(port);
+		}
 	}
 
 	@SuppressWarnings("unused")

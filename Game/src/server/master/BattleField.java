@@ -4,8 +4,6 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.server.RemoteServer;
-import java.rmi.server.ServerNotActiveException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -73,9 +71,6 @@ public class BattleField implements IBattleField {
 	private long startTime;
 	private long endTime;
 
-	// private static final Logger logger =
-	// LogManager.getLogger(BattleField.class);
-
 	/**
 	 * Initialize the battlefield to the specified size
 	 * 
@@ -134,14 +129,13 @@ public class BattleField implements IBattleField {
 	@Override
 	public void sendMessage(Message msg) {
 		IRunner RMIServer = null;
-		String clienthost = null;
+		/*String clienthost = null;
 		try {
 			clienthost = RemoteServer.getClientHost();
 		} catch (ServerNotActiveException e1) {
 			e1.printStackTrace();
-		}
-		String urlServer = new String("rmi://" + clienthost + ":"
-				+ msg.getMiddlemanPort() + "/" + msg.getMiddleman());
+		}*/
+		String urlServer = new String("rmi://" + helpers.get(msg.getMiddleman()) + "/" + msg.getMiddleman());
 
 		// Bind to RMIServer
 		try {
@@ -305,8 +299,9 @@ public class BattleField implements IBattleField {
 				reply.setRequest(MessageRequest.returnTargets);
 				System.out.println("From dragon: " + from);
 				if (getUnit(x, y) instanceof Player) {
-					reply.setMiddleman((String) msg.getMiddleman());
-					reply.setMiddlemanPort((int) msg.getMiddlemanPort());
+					reply.setMiddleman(msg.getMiddleman());
+					reply.setMiddlemanPort(msg.getMiddlemanPort());
+					reply.setRecipient(msg.getSender());
 					reply = getPlayerTargetsMessage(x, y, reply);
 				} else {
 					reply = getDragonTargetsMessage(x, y, reply);
@@ -342,6 +337,9 @@ public class BattleField implements IBattleField {
 		if (getUnit(x, y) instanceof Player) {
 			reply.setMiddleman((String) msg.getMiddleman());
 			reply.setMiddlemanPort((int) msg.getMiddlemanPort());
+			reply.setRecipient(msg.getSender());
+			reply.setSenderHost(msg.getSenderHost());
+			reply.setSendersPort(msg.getSendersPort());
 			sendMessage(reply);
 		} else {
 			String address = myAddress.split("/")[0];
@@ -358,11 +356,9 @@ public class BattleField implements IBattleField {
 					.getAttackPoints());
 			unitsChanged = true;
 
-			if (unit.getHitPoints() <= 0) {
-				// removeUnit(unit.getUnitID());
-
+			/*if (unit.getHitPoints() <= 0) {
 				sendGameOverMessage(msg);
-			}
+			}*/
 		}
 	}
 
@@ -495,6 +491,10 @@ public class BattleField implements IBattleField {
 	 * @return true when the unit has been put on the specified position.
 	 */
 	private boolean spawnUnit(String id, Unit unit, int x, int y) {
+		if (units.get(id) != null) {
+			return true;
+		}
+		
 		synchronized (this) {
 			if (map[x][y] != null)
 				return false;
@@ -556,9 +556,9 @@ public class BattleField implements IBattleField {
 		int x = unitToRemove.getX();
 		int y = unitToRemove.getY();
 		map[x][y] = null;
-		Unit removed = units.remove(unitToRemove);
+		Unit removed = units.remove(unitToRemove.unitID);
 
-		if (removed == null && map[x][y] == null) {
+		if (removed != null && map[x][y] == null) {
 			unitsChanged = true;
 			mapChanged = true;
 			return true;
@@ -618,6 +618,7 @@ public class BattleField implements IBattleField {
 	public void putHelper(String key, String value) {
 		BattleField.helpers.put(key, value);
 		helpersChanged = true;
+		log("Helper: " + key + ": " + value + " registered");
 		printHelpers();
 		if (this.backupAddress != null) {
 			updateBackupServerForHelper(key, this.backupAddress.split("/")[0]);
@@ -945,7 +946,7 @@ public class BattleField implements IBattleField {
 
 	@Override
 	public boolean promoteBackupToMain() throws RemoteException {
-		if (!isBackup) {
+		if (isBackup) {
 			isBackup = false;
 			initHelperChecker();
 			initBackupService();
@@ -958,18 +959,20 @@ public class BattleField implements IBattleField {
 	}
 
 	private void reInitDragons() {
-		log("DragonRunner running again");
+		log("Trying to reinit dragons");
 		Iterator<Entry<String, Unit>> dragons = this.dragons.entrySet()
 				.iterator();
 
 		while (dragons.hasNext()) {
-			Dragon current = (Dragon) dragons.next();
+			Dragon current = (Dragon) dragons.next().getValue();
 			current.serverAddress = myAddress;
 			new DragonController(current);
 		}
+		log("DragonRunner running again");
 		while (numberOfDragons() < NR_OF_DRAGONS) {
 			spawnDragon();
 		}
+		
 	}
 
 	public boolean isBackup() {

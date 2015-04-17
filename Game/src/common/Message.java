@@ -13,7 +13,8 @@ public class Message implements Serializable {
 	private String messsageID;
 
 	private String sender;
-	// private int sendersPort = 1099;
+	private String senderHost;
+	private int sendersPort = 1099;
 
 	private String recipient;
 	private String middleman;
@@ -97,9 +98,26 @@ public class Message implements Serializable {
 		this.middleman = middleman;
 	}
 
+	public int getSendersPort() {
+		return sendersPort;
+	}
+
+	public void setSendersPort(int sendersPort) {
+		this.sendersPort = sendersPort;
+	}
+
+	public String getSenderHost() {
+		return senderHost;
+	}
+
+	public void setSenderHost(String senderHost) {
+		this.senderHost = senderHost;
+	}
+
 	@Override
 	public String toString() {
 		return "Message [messsageID=" + messsageID + ", sender=" + sender
+				+ ", senderHost=" + senderHost + ", sendersPort=" + sendersPort
 				+ ", recipient=" + recipient + ", middleman=" + middleman
 				+ ", middlemanPort=" + middlemanPort + ", updates=" + updates
 				+ ", request=" + request + ", values=" + values + "]";
