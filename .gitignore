@@ -21,6 +21,7 @@ local.properties
 *.synctex.gz
 *.class
 
+
 # External tool builders
 .externalToolBuilders/
 
@@ -32,7 +33,7 @@ local.properties
 
 # PDT-specific
 .buildpath
-
+Game/log/*.*
 
 #################
 ## Visual Studio
@@ -219,3 +220,5 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+Game/log.txt
+Game/log_metric.txt
