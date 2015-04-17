@@ -45,14 +45,16 @@ The communication between the servers and the clients and servers will be done v
 % The problem
 The Dragon Arena System (DAS) is a (non-distributed) online warfare game of WantGame BV.
 Now, WantGame BV wishes to implement a new, distributed, version of the DAS in order to be able to support many concurrent users.
-However, designing and implementing a distributed system which has to support massive amounts of concurrent users is rather complex as it introduces many unknowns regarding for example: performance, scalability and consistency.
+However, designing and implementing a distributed system which has to support massive amounts of concurrent users is rather complex as it introduces many unknowns regarding such as performance, scalability, consistency and fault-tolerance.
 
 % Existing systems and/or tools which you know
 A previous non-distributed version of a DAS has been implemented by a previous consultant of WantGame BV which was studied carefully before the design of the new distributed DAS.
 The new Dragon Arena System game is implemented in Java and uses Remote Method Invocation (RMI) in order to support remote calls to other clients and servers.
 
 % The system you are about to implement
-The newly designed and implemented DAS aims to be scalable in the sense that it needs to run a service of online warfare between computer- controlled dragons and hundreds of clients, who are represented by virtual knights. % Maybe extend it with the performance-cost ratio which is mentioned in the exercise???
+The newly designed and implemented DAS aims to be scalable in the sense that it needs to run a service of online warfare between computer- controlled dragons and hundreds of clients, who are represented by virtual knights. 
+A distributed implementation of the game provides a better performance-cost ratio as the implemented system will use resources more efficiently than the old implementation of the game.
+Such a system also allows the workload to be distributed over multiple server nodes which leads to a better performance than in just a client-server approach.
 
 % Structure of the remainder of the article
 This report starts with addressing the application itself and its background.
