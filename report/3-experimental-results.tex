@@ -1,8 +1,8 @@
 \section{Experimental Results}
-Unfortunately we were not able to utilize the DAS-4 system (due to an incompatible java version), however we tested the game when running on two different laptops over a local area network (LAN). These tests were after the initial deadline and therefore the testing part of the game had already been done. Therefore we decided to spend this chapter on how we wish we could have performed the experiments in the first place if these implementation problems hadn't delayed us this much. However we were able to collect some primitive data from some local experiments. These results will be discussed here as well.
+Unfortunately we were not able to utilize the DAS-4 system (due to an incompatible Java version), however we tested the game when running on two different laptops over a local area network (LAN). These tests were after the initial deadline and therefore the testing part of the game had already been done. Therefore we decided to spend this chapter on how we wish we could have performed the experiments in the first place if these implementation problems hadn't delayed us this much. However we were able to collect some primitive data from some local experiments. These results will be discussed here as well.
 
 \subsection{Setup}
-The code of the DAS game, which was used for these experiments, is made publically available under the BSD new license and is avaiable on: \url{https://github.com/pbrand/DCS-Dragon-Arena-System}. 
+The code of the DAS game, which was used for these experiments, is made publicly available under the BSD new license and is available on: \url{https://github.com/pbrand/DCS-Dragon-Arena-System}. 
 The license can be reviewed at: \url{https://github.com/pbrand/DCS-Dragon-Arena-System/blob/development/Game/LICENSE}
 For this experiment, the DAS-4 should be initialized with 5 compute-nodes. 
 One compute node should host the main server which initializes the battlefield. 
@@ -21,7 +21,7 @@ In this project, a causal relationship is defined by: a certain unit \emph{A} pe
 It is also important to measure how consistent the backup of the battlefield is with the battlefield on the main server.
 This can be measured by taking a snapshot of the battlefield on the main server at a random time after which the main server is forcefully shut down. 
 At this moment, the taken snapshot can be compared with the latest backup of the battlefield at the backup server. 
-The difference in location of the units are an indicator of the consistency between the backup and the main server. The difference in healthpoints of the units can be a measure as well. The combination of these two measures will give a rough indication of the divergence of the backup compared to the main server. 
+The difference in location of the units are an indicator of the consistency between the backup and the main server. The difference in health points of the units can be a measure as well. The combination of these two measures will give a rough indication of the divergence of the backup compared to the main server. 
 A more concrete measurement can be obtained by backing up the previously mentioned list of messages and checking the differences between both battlefields. The amount of missing messages in the backup is the exact number of events that were lost during the recovery, hence a clear indication of the inconsistency. 
 This experiment should be performed several times in order to guarantee an unbiased result, as the random time of the snapshot will probably sample at different times after the creation of the latest backup at the backup server. 
 
@@ -69,22 +69,24 @@ To simulate the distribution of the system locally, different RMI registries wer
 By doing so, the running classes need to call a different (local) server in order to make an RMI call.
 
 % Consistency
-One important issue in a distributed game is keeping the game-state consistent for every client and server.
-This means that battlefield needs to be somehow updated for every client in order to be able to play the game.
-As stated in the previous chapter, whenever a client sends a request, the required information is returned to the helper server the client is connected to.
-The helpers server itself does not maintain a local state of the game, but only computes results.
-However, the battlefield does maintain a state of the game. 
-Therefore it is important for the master server to maintain a correct state of the game, which is done by sending messages whenever a Unit performs an action and also when certain parts of the game state need to be updated.
-
-As stated, the fancy measurements were not performed during this project. 
-However, we did collect some results for helpers and the main server.
-The number of messages which were sent and received are logged as well as the number of messages which were failed to send.
+As stated in the previous chapter, the helper server does not maintain a state of the game, but sends messages to retrieve the required information in order to perform the computation. 
+A number of tests were run to measure the traffic for messages sent, received and failed to sent by the helper server.
 These results are from tests in which the system is spawning the players by reading a file from the Game Trace Archive.
 No helper nodes were killed.
+It is still notable that there are still some messages failing to be sent. 
+However the number of messages which failed is really small.
+The results can be seen in the figure below.
 
-It is still notable that there are still some messages failing to be sent. However the number of messages which failed is really small.
-What is also observed, is that the failures in the helper servers is much lower than the failure in the main server.
-This is probably because the main server eventually receives many more requests than each helper server.
+%What is also observed, is that the failures in the helper servers is much lower than the failure in the main server.
+%This is probably because the main server eventually receives many more requests than each helper server.
+
+\begin{figure}[ht]
+\includegraphics[scale=0.8]{images/helper_pie.png}
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics[scale=0.8]{images/master_pie.png}
+\end{figure}
 
 For scalability tests we did not collect hard evidence. 
 However, there we did run some tests in which random helper servers were killed after which the clients reconnected to other helper servers.
@@ -97,14 +99,3 @@ Because these nodes are quite balanced, clients can reconnect faster to other he
 
 In the end we also tested the game on two laptops that were connected through a LAN. Although the game ran, some issues came up which were mainly related to updating the movement of the players. We think this is due to the great amount of messages that the main server needs to handle in a very short time period without any form of buffering.
 
-\subsection{The graphs should be placed to here, mayber you wanted to do more experiments so didn't refactor the parts about experiments yet}
-\textbf{Comment from Mihai:} \textit{The tables must
-also be clearly explained in the text. In particular, it is not clear
-what the column headers mean.}
-\begin{figure}[ht]
-\includegraphics[scale=0.5]{M1.png}
-\end{figure}
-
-\begin{figure}[ht]
-\includegraphics[scale=0.5]{M2.png}
-\end{figure}
