@@ -152,16 +152,7 @@ public class ClientMain {
 
 		return helper;
 	}
-
-	private static Registry createOrGetRegistry(int port)
-			throws RemoteException {
-		try {
-			return LocateRegistry.createRegistry(0);
-		} catch (RemoteException e) {
-			return LocateRegistry.getRegistry(port);
-		}
-	}
-
+	
 	@SuppressWarnings("unused")
 	private static void printRegistry(String[] array) {
 		for (int i = 0; i < array.length; i++) {
