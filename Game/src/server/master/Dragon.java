@@ -2,15 +2,11 @@ package server.master;
 
 
 public class Dragon extends Unit {
+
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -9218556354095830506L;
-	/* Reaction speed of the dragon
-	 * This is the time needed for the dragon to take its next turn.
-	 * Measured in half a seconds x GAME_SPEED.
-	 */
-	
+	private static final long serialVersionUID = 7453124200846854178L;
 	// The minimum and maximum amount of hitpoints that a particular dragon starts with
 	public static final int MIN_HITPOINTS = 50;
 	public static final int MAX_HITPOINTS = 100;
