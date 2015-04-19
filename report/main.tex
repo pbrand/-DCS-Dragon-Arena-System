@@ -31,10 +31,18 @@ Course Instructor: Dr.ir. Alexandru Iosup
 
 \begin{abstract}
 %a description of the problem, system description, analysis overview, and one main result. Size: one paragraph with at most 150 words.
-This report discusses the the process of implementing a distributed version of the Dragon Arena System (DAS) in order to be scalable and to support multiple concurrent users playing the game.
+
+This report discusses the process of implementing a distributed version of the Dragon Arena System (DAS) in order to be scalable and to support multiple concurrent users playing the game.
+The DAS is a game in which there are players and dragons which can attack each other. 
+The goal for the players is to survive by killing the dragons and vice versa for the players.
+
 The game architecture will consist of two main layers; the helper server layer and the main server layer.
-The helper servers will perform computation and the servers in the main layer will keep track of the battlefield en eventual copies of the battlefield.
+The helper servers will perform computation and the servers in the main layer will keep track of the battlefield and eventual copies of the battlefield.s
 The communication between the servers and the clients and servers will be done via Java's Remote Method Invocation.
+
+The new DAS will be scalable up to a hundred players and allow players to play uninterrupted even when faults occur.
+
+
 \end{abstract}
 
 
@@ -77,6 +85,9 @@ Furthermore, a discussion about the findings of our work can be found in the fou
 
 \include{appendix}
 
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{mybibfile}
 
 \end{document}
 

@@ -80,7 +80,7 @@ The results can be seen in figure \ref{helper_pie}.
 %What is also observed, is that the failures in the helper servers is much lower than the failure in the main server.
 %This is probably because the main server eventually receives many more requests than each helper server.
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \centering
 \includegraphics[scale=0.8]{images/helper_pie.png}
 \caption{Helper Server Messages}
@@ -96,7 +96,7 @@ What is interesting to see, in contrast to the helper servers, the number of mes
 This is due to the fact that the main server sends less messages back to clients than the helpers do.
 For instance: when clients perform a move they do not get a message back of an acknowledgement of the move.
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \centering
 \includegraphics[scale=0.8]{images/master_pie.png}
 \caption{Master Server Messages}
@@ -110,14 +110,14 @@ In the charts from figures \ref{helper_hist} and \ref{master_hist}, the number o
 For each following test, the number of clients were increased. 
 Obvious observation: the more clients, the more messages there are sent and received.
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \centering
 \includegraphics[scale=0.8]{images/helper_hist.png}
 \caption{Helper Server Tests}
 \label{helper_hist}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \centering
 \includegraphics[scale=0.8]{images/master_hist.png}
 \caption{Master Server Tests}
