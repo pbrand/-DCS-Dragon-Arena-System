@@ -8,4 +8,5 @@ del *.bbl
 del *.blg
 del *.dvi
 del *.log
+del *.out
 pause
