@@ -1,6 +1,6 @@
 #!/bin/bash
 pdflatex main
-bibtex bib
+bibtex mybibfile
 bibtex main
 pdflatex main
 pdflatex main
@@ -9,4 +9,5 @@ rm *.bbl
 rm *.blg
 rm *.dvi
 rm *.log
+rm *.out
 read -p "Compilation done"

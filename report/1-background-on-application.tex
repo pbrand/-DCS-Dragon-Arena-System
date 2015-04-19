@@ -1,1 +1,22 @@
 \section{Background on Application }
+
+%describe the DAS application (1 paragraph) and its requirements (1 paragraph per each of consistency, scalability, fault - tolerance, and performance ).
+
+The Dragon Arena System (DAS) is an online warfare game of WantGame BV between human players and computer controlled dragons.
+The game consists of a battlefield of 25x25 squares on which players and dragons reside.
+The players and dragons maintain a certain amount of health and attack points.
+The players may move one step at a time, which is either in a horizontal or a vertical direction. 
+The dragons may not move, they are only allowed to attack.
+The goal of the game for the players is to kill all the dragons and survive (vice versa for the dragons).
+WantGame wants the game to be able to support many concurrent users and has therefore decided to invest in, and design a, distributed game engine which needs to be consistent, scalable and fault-tolerant. 
+
+As stated, the game needs to support multiple concurrent users playing on the same battlefield. 
+This means that the system must be able to scale up in order to handle all these users and the requests they make to the servers. 
+In order to achieve this, it is important to have multiple server nodes to handle requests of all these users. 
+(This will be explained in more detail in the next section).
+
+Multiple nodes means that different players may perform actions which might have an impact on a second player's actions.
+In order to detect this, the system needs to be able to detect whether another player's action is still valid. 
+
+Last but not least, players must be able to continue their game even if some server crashes. 
+This means that the game also needs to be designed to be fault-tolerant against failing servers and must also handle messages which may fail to get sent.

@@ -20,6 +20,10 @@ local.properties
 *.pdf
 *.synctex.gz
 *.class
+Game/log/*.*
+
+
+
 
 
 # External tool builders
@@ -220,5 +224,7 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-Game/log.txt
-Game/log_metric.txt
+
+report/main.pdf
+Game/lib/log4j-api-2.2.jar
+Game/lib/log4j-core-2.2.jar

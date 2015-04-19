@@ -1,1 +1,53 @@
 \section{Appendix}
+
+\subsection{A: Time sheets}
+
+\begin{table}[h]
+\begin{tabular}{llllll}
+\textbf{Week} & \textbf{think-time} & \textbf{dev-time} & \textbf{xp/analysis-time} & \textbf{write-time} & \textbf{wasted-time} \\ \hline
+2             & 2                   & 0                 & 0                         & 0                   & 4                    \\
+3             & 3                   & 0                 & 0                         & 2                   & 0                    \\
+4             & 3                   & 3                 & 0                         & 0                   & 3                    \\
+5             & 1                   & 4                 & 0                         & 0                   & 2                    \\
+6             & 1                   & 8                 & 2                         & 3                   & 0                    \\
+7             & 1                   & 8                 & 3                         & 2.5                 & 0                    \\
+8             & 2                   & 4                 & 4                         & 4                   & 0                    \\
+              &                     &                   &                           &                     &                     
+\end{tabular}
+\end{table}
+
+In the analysis above the hours of the team members are summarized. 
+It is clear that in the first two weeks we did not implement anything, but thought more about the system architecture and the possible solutions for the different problems such as consistency and replication.
+In the fourth week we started diving in to RMI by reading about RMI and following developer tutorials in order to get familiar with  RMI.
+We also started looking in to the provided source code of the DAS system provided on Blackboard and made a start for the implementation.
+In the fifth week continued the implementation of the system.
+In this week most of the problems (which we already explained in the report) were encountered. 
+We decided to start a clean implementation again, which is also why our dev-time in the following weeks were quite high.
+As explained in the report, we did not have any fancy experiments. 
+However, we did test and experiment with the system in other ways as explained.
+These tests includes testing the system with a few clients as as well as tests with multiple clients and helpers performing multiple concurrent actions.
+The time we spend doing so is reported under xp/analysis-time.
+
+NOTE: this table is per person, and the total amount of hours in this table is 67.
+Which means that the total for all the members is twice this number.
+The amount of hours spent by each member is almost the same, which is why we just provided one table.
+This is mainly because we scheduled meetings to work on the assignment.
+
+\subsection{B: Evaluation}
+
+This section describes our personal experience of the project, where mainly the encountered pitfalls are discussed.
+
+As we experienced, one might easily get tempted to go too much into detail right from the start of the project.
+After the written part about \emph{Consistency and Replication}, the first thing we did was focus on the algorithms, for implementing \emph{causal consistency} for instance. 
+At some point we came to the conclusion that this took too much time if we wished to follow this approach for all our design choices, hence we started looking for libraries that could provide us with an implementation. 
+In the end, it was clear that this should not be the focus of the project and therefore an initial (primitive) distributed concept was designed and eventually implemented. 
+Unfortunately this costed us a lot of time that is not represented in the final results (e.g. this paper and the implementation of the system).
+
+Another problem that we faced was our decision of refactoring the given codebase. 
+A lot of time was spent on trying to make the given code work, instead of developing a new system from scratch while keeping the given implementation as a valuable resource in mind.
+In the future we would start with designing a basic concept and simply implement that concept. After the basic functionality, like for example game logic, would run, we would expand our horizon and look at the more advanced topics in order to improve the system. These topics might include constraints for consistency, scalability and performance for instance.
+With this approach it is very likely that the initial design has to be revised when the more advanced topics are implemented, but at least a basic working version can always be retreived by version control.
+
+
+
+

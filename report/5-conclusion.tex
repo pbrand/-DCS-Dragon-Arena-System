@@ -1,1 +1,10 @@
 \section{Conclusion}
+The implementation of a distributed game is quite a challenge, certainly if you're a beginner in the Distributed Systems field. 
+It is safe to conclude that in this case the helper servers are not of much use and that the use of multiple battlefield servers could have been better.
+
+On the other hand the experiments do show that the current implementation does scale and is able to support multiple concurrent users, although it can be concluded that the current implementation is more client-server oriented rather than fully distributed with at least 5 nodes.
+
+Besides the system being scalable, it is also fault-tolerant up to a certain level as clients may also recover from helper server crashes by just reconnecting to a different one and the main server may be replaced by a backup server if it crashes.
+Even though the implementation isn't fully distributed, it does not mean that the current design (regardless of its implementation) is all that bad. 
+The idea of relieving the main server of some load is still be a nice feature, especially if the computations of the game would have been more resource demanding. 
+

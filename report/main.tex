@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage{a4wide}
-
-
+\usepackage{graphicx}
+\usepackage{hyperref}
 
 %% if your are not using LaTeX2e use instead
 %% \documentstyle[bnaic]{article}
@@ -10,39 +10,78 @@
 
 \title{Distributed Computing Systems IN4391\\ The Dragons Arena System %: Distributed Simulation of Virtual Worlds
 }
-\author{Patrick Brand (patrick.brand2@gmail.com) \and
-    Raies Saboerali (r.a.a.saboerali@student.tudelft.nl)}
-\date{}
+\author{Patrick Brand (p.brand@student.tudelft.nl) \and
+    Raies Saboerali (r.a.a.saboerali@student.tudelft.nl)
+	%\thanks	T.A: Ir. Mihai Capota, Course Manager: Dr.ir. Alexandru IOSUP
+}
+\date{\today}
 
 %support cast needs to be filled in here.
+
 
 \pagestyle{empty}
 
 \begin{document}
 \maketitle
 \thispagestyle{empty}
+\begin{center}
+Lab Assistant: Ir. Mihai Capot$\breve{a}$ \\
+Course Instructor: Dr.ir. Alexandru Iosup
+\end{center}
 
 \begin{abstract}
-a description of the problem, system description, analysis overview, and one
-main result. Size: one paragraph with at most 150 words.
+%a description of the problem, system description, analysis overview, and one main result. Size: one paragraph with at most 150 words.
+
+This report discusses the process of implementing a distributed version of the Dragon Arena System (DAS) in order to be scalable and to support multiple concurrent users playing the game.
+The DAS is a game in which there are players and dragons which can attack each other. 
+The goal for the players is to survive by killing the dragons and vice versa for the dragons.
+
+The game architecture consists of two main layers; the helper server layer and the main server layer.
+The helper servers perform computations and the servers in the main layer keep track of the battlefield and eventual copies of the battlefield.
+The communication between the helper servers and the clients is done via Java's Remote Method Invocation.
+
+The new DAS will be scalable up to a hundred players and allow players to play uninterrupted even when faults occur.
+
+
 \end{abstract}
 
 
 \section{Introduction}
 
-(recommended size, including points 1 and 2: 1 page): describe the problem, the existing systems and/or tools about which you know (related work), the system you are about to implement, and the structure of the remainder of the article. Use one short paragraph for each.
+%(recommended size, including points 1 and 2: 1 page): describe the problem, the existing systems and/or tools about which you know (related work), the system you are about to implement, and the structure of the remainder of the article. Use one short paragraph for each.
+
+% The problem
+The Dragon Arena System (DAS) is a (non-distributed) online warfare game of WantGame BV.
+Now, WantGame BV wishes to implement a new, distributed, version of the DAS in order to be able to support many concurrent users.
+However, designing and implementing a distributed system which has to support massive amounts of concurrent users is rather complex as it introduces many unknowns with regard to properties such as performance, scalability, consistency and fault-tolerance.
+
+% Existing systems and/or tools which you know
+A previous non-distributed version of a DAS, which was implemented by a previous consultant of WantGame BV, has been studied carefully before the design of the new distributed DAS.
+The new Dragon Arena System game is implemented in Java and uses Remote Method Invocation (RMI) in order to support remote calls to other clients and servers.
+
+% The system you are about to implement
+The newly designed and implemented DAS aims to be scalable in the sense that it needs to run a service of online warfare between computer- controlled dragons and hundreds of clients, who are represented by virtual knights. 
+A distributed implementation of the game provides a better performance-cost ratio as the implemented system uses resources more efficient than the old implementation of the game.
+Such a system also allows the workload to be distributed over multiple server nodes which leads to a better performance than just a client-server approach.
+
+% Structure of the remainder of the article
+This report starts with addressing the application itself and its background in section two.
+Afterwards, the design and architecture of the proposed system which is implemented is discussed in the third section.
+The various high level components of the game and how they communicate are explained there as well.
+In the fourth section the results of various performed tests are presented. 
+Furthermore, a discussion about the findings of our work can be found in the fifth section and finally it ends with a conclusion in section six. The appendix hosts a list with spent hours as well as a personal evaluation of this project.
 
 \newpage
 
-\include{1-background-on-application}
+\input{1-background-on-application}
 
-\include{2-system-design}
+\input{2-system-design}
 
-\include{3-experimental-results}
+\input{3-experimental-results}
 
-\include{4-discussion}
+\input{4-discussion}
 
-\include{5-conclusion}  
+\input{5-conclusion}  
 
 \include{appendix}
 
