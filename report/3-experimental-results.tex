@@ -73,29 +73,71 @@ As stated in the previous chapter, the helper server does not maintain a state o
 A number of tests were run to measure the traffic for messages sent, received and failed to sent by the helper server.
 These results are from tests in which the system is spawning the players by reading a file from the Game Trace Archive.
 No helper nodes were killed.
-It is still notable that there are still some messages failing to be sent. 
-However the number of messages which failed is really small.
-The results can be seen in the figure below.
+It is still notable that there are some messages failing to be sent. 
+However the number of messages which failed is really small (therefore not visible in results chart).
+The results can be seen in figure \ref{helper_pie}.
 
 %What is also observed, is that the failures in the helper servers is much lower than the failure in the main server.
 %This is probably because the main server eventually receives many more requests than each helper server.
 
 \begin{figure}[ht]
+\centering
 \includegraphics[scale=0.8]{images/helper_pie.png}
+\caption{Helper Server Messages}
+\label{helper_pie}
 \end{figure}
 
+The same data was also collected for the main server when running these tests.
+The results are shown in figure \ref{master_pie}.
+In this figure it is notable that there are about 1\% of messages failing.
+This may seem small in percentage, but it may definitely not be ignored in terms of number of messages.
+The reason for more failing messages at the main server is because it needs to handle more messages than the helper server, it receives in total more messages than the helpers combined.
+What is interesting to see, in contrast to the helper servers, the number of messages sent is almost twice as the number of messages received.
+This is due to the fact that the main server sends less messages back to clients than the helpers do.
+For instance: when clients perform a move they do not get a message back of an acknowledgement of the move.
+
 \begin{figure}[ht]
+\centering
 \includegraphics[scale=0.8]{images/master_pie.png}
+\caption{Master Server Messages}
+\label{master_pie}
 \end{figure}
 
 For scalability tests we did not collect hard evidence. 
 However, there we did run some tests in which random helper servers were killed after which the clients reconnected to other helper servers.
 The clients were also able to continue playing the game.
+In the charts from figures \ref{helper_hist} and \ref{master_hist}, the number of messages sent, received and failed can be seen per test run for helper and master server.
+For each following test, the number of clients were increased. 
+Obvious observation: the more clients, the more messages there are sent and received.
 
-Another thing which can be noted from the metrics, is that the nodes are quite balanced.
+\begin{figure}[ht]
+\centering
+\includegraphics[scale=0.8]{images/helper_hist.png}
+\caption{Helper Server Tests}
+\label{helper_hist}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[scale=0.8]{images/master_hist.png}
+\caption{Master Server Tests}
+\label{master_hist}
+\end{figure}
+
+Another thing which can be noted from the metrics result (figure \ref{client_helper}), is that the nodes are quite balanced.
 Even though the helper servers are chosen at random it still shows that every helper node has a fair amount of clients.
 During the tests there was no case in which almost all clients were connected to one server node and every other helper was doing almost nothing.
 Because these nodes are quite balanced, clients can reconnect faster to other helper nodes, simply because the number of helper nodes which need to reconnect is not large.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[scale=0.8]{images/client_helper.png}
+\caption{Clients and Helpers Distribution}
+\label{client_helper}
+\end{figure}
+
+In figure \ref{client_helper}, the first test was run with four helpers, the second with two clients and the third with only one.
+Obviously all clients were forced to connect to the only available helper server.
 
 In the end we also tested the game on two laptops that were connected through a LAN. Although the game ran, some issues came up which were mainly related to updating the movement of the players. We think this is due to the great amount of messages that the main server needs to handle in a very short time period without any form of buffering.
 
