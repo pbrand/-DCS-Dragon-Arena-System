@@ -10,11 +10,11 @@ The battlefield on this master server only contains a limited set of actions whi
 The actual computation of these actions will not be be computed on the main server, but instead these will be computed on the helper servers.
 Therefore for the game to function, it is important to also initialize at least one helper server. 
 Every time a helper server is initiated, it also registers itself on the main server.
-If a user starts the game on his computer, the clients then connect to a main server with request to join the game.
+If a user starts the game on his computer, the clients then connect to a main server with a request to join the game.
 The master server then randomly selects a helper server from the list of his known helpers servers.
-The necessary details about the lucky helpers server is then returned to the client. 
+The necessary details about the lucky helper server is then returned to the client. 
 The client then connects to this helper server and registers itself.
-The client also requests the battlefield itself in order to be able to make the correct decisions. 
+The client also requests  the battlefield itself in order to be able to make the correct decisions. 
 If everything works well: the user is ready to play!
 When a user tries to perform an action, the action is sent to a helper server.
 The helper server subsequently receives the request and, depending on the type of action, the helper  eventually requests the required information from the main server.
@@ -31,22 +31,22 @@ First, lets have a look at the helper servers. As stated earlier, the clients co
 When a helper server goes down, the main server notices this and removes this helper from its known helpers.
 If a client tries to query the helper server when it wants to perform an action, it detects that the helper server is down.
 The client then asks the main server for a new helper server.
-After the main server updates the client of his new helper, the client registers with the new helper and tries to execute its last action again.
-The new helper receives the action request and continues working as usual.
+After the main server updates the client of his new helper, the client registers itself at the new helper and tries to execute its last action again.
+The new helper receives the action request and continues his work as usual.
 
 It is also possible that the main server goes down. 
 The main server was the one containing the data about the battlefield and its participants.
 This is why it is necessary to have a backup server running.  
 In order to recover when a main server crashes, the system does check-pointing periodically.
-If during the periodic check, the main server detects that changes to the battlefield have been made, the main server subsequently sends the changes to the backup server.
+If, during the periodic check, the main server detects that changes to the battlefield have been made, the main server subsequently sends these changes to the backup server.
 The backup server then updates the knowledge of its backup battlefield and other relevant information.
 
-If the main server goes down, it becomes impossible for the helper server to perform any action on the main server obviously.
-If the helpers detect such a problem, they immediately try to send the request to the backup server and ask the backup server to perform the action requested on the battlefield.
-The helpers also notify the backup, the failure of the main server and tell the main server that he needs to take over the tasks.
+If the main server goes down, it is obvious that it is impossible for the helper server to perform any action on the main server.
+If the helpers detect such a problem, they immediately try to send the request to the backup server and ask the backup server to perform the requested actions on the battlefield.
+The helpers also notify the backup, the failure of the main server and tell the main server that he needs to take over the tasks. %%% I don't understand this sentence.
 Whenever the backup server gets such a notification, it promotes itself to being the main server and takes all the responsibilities of a main server on itself.
-The backup may be a few steps behind, because the backup is not made after each Unit action, but periodically. 
-Updating the backup after each Unit action would cause too much overhead at the server. 
+The backup may be a few steps behind, because the backup is not updated after each Unit action, as it is updated periodically. 
+Updating the backup after each Unit's action would cause too much overhead at the server. 
 
 One problem that can occur is that, when the main server goes down and the backup takes over his work, no other backup server is created. 
 If the new main server were to go down, no other server would be able to take over and the game would be lost. 

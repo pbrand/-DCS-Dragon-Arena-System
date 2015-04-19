@@ -11,8 +11,8 @@ The battlefield can then handle the actions of the clients by himself, this woul
 This also means that there needs to be some sort of synchronization between the different main servers.
 A possible way to do so: check if the move is possible on all the servers, then lock the area which needs to be updated, and then propagate the update further to other battlefields and release the area.
 Another positive side of this solution is that no extra backup server is needed, because there are multiple servers with the same battlefield running which could be used if another server crashes.
-As explained in the experimental results, during the last minute tests it became apparent that the messages at the main server where lost. 
-This problem probably occurred, due to the many messages that the main server had to handle in a short period of time. A possible way for fixing this is by storing the messages before handling them. An option for the storage is for example a database which stores the messages that contain the actions of the players.
+As explained in the experimental results, during the last minute tests it became apparent that the messages at the main server were lost. 
+This problem probably occurred, due to the many messages that the main server had to handle in a short period of time. A possible way of fixing this is by storing the messages before handling them. An option for the storage is for example a database which stores the messages that contain the actions of the players.
 
 The current implementation of the DAS does work, however one big trade-off had to be made in order to let the game function correctly.
 As stated earlier, the helper servers where needed in order to perform computation. 

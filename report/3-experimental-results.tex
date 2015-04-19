@@ -1,5 +1,7 @@
 \section{Experimental Results}
-Unfortunately we were not able to utilize the DAS-4 system (due to an incompatible Java version), however we tested the game when running on two different laptops over a local area network (LAN). These tests were after the initial deadline and therefore the testing part of the game had already been done. Therefore we decided to spend this chapter on how we wish we could have performed the experiments in the first place if these implementation problems hadn't delayed us this much. However we were able to collect some primitive data from some local experiments. These results will be discussed here as well.
+Unfortunately we were not able to utilize the DAS-4 system (due to an incompatible Java version), however we tested the game when running on two different laptops over a local area network (LAN). These tests were after the initial deadline and therefore the testing part of the game had already been done. Therefore we decided to spend this chapter on how we wished we could have performed the experiments in the first place if these implementation problems hadn't delayed us this much. 
+In the end we were able to collect some primitive data from some local experiments. 
+These results are discussed in this section as well.
 
 \subsection{Setup}
 The code of the DAS game, which was used for these experiments, is made publicly available under the BSD new license and is available on: \url{https://github.com/pbrand/DCS-Dragon-Arena-System}. 
@@ -48,11 +50,10 @@ The same properties as in the scalability of the helper servers will be measured
 Instead of measuring the response time of messages between helper and client, the response time between helper and main server is measured.
 The CPU and memory usage are also recorded in order to find the performance bottleneck.
 
-
 \subsection{Fault-Tolerance Experiments}
 For fault tolerance the system also needs to be tested for both the helpers and the main server.
 To test the tolerance of the system when helpers crash, tests are run with multiple helper servers which are killed at random to simulate crashes.
-It is then possible to measure the number of messages which were tried to be sent from the server and the number of messages which were actually sent to a helper server after one was randomly killed.
+It is then possible to measure the number of messages which were tried to get sent from the server and the number of messages which were actually sent to a helper server after one was randomly killed.
 These tests need to be run multiple times and the different outcomes should be compared in order to get a view of the number of failed sent messages.
 If this value is low, it is probably safe to conclude that the helper server's fault-tolerance is acceptable.
 
@@ -73,7 +74,7 @@ As stated in the previous chapter, the helper server does not maintain a state o
 A number of tests were run to measure the traffic for messages sent, received and failed to sent by the helper server.
 These results are from tests in which the system is spawning the players by reading a file from the Game Trace Archive.
 No helper nodes were killed.
-It is still notable that there are some messages failing to be sent. 
+It is still notable that there are some messages failing to get sent. 
 However the number of messages which failed is really small (therefore not visible in results chart).
 The results can be seen in figure \ref{helper_pie}.
 
@@ -89,7 +90,7 @@ The results can be seen in figure \ref{helper_pie}.
 
 The same data was also collected for the main server when running these tests.
 The results are shown in figure \ref{master_pie}.
-In this figure it is notable that there are about 1\% of messages failing.
+In this figure it is notable that there are about 1\% of failing messages.
 This may seem small in percentage, but it may definitely not be ignored in terms of number of messages.
 The reason for more failing messages at the main server is because it needs to handle more messages than the helper server, it receives in total more messages than the helpers combined.
 What is interesting to see, in contrast to the helper servers, the number of messages sent is almost twice as the number of messages received.
@@ -137,7 +138,7 @@ Because these nodes are quite balanced, clients can reconnect faster to other he
 \end{figure}
 
 In figure \ref{client_helper}, the first test was run with four helpers, the second with two clients and the third with only one.
-Obviously all clients were forced to connect to the only available helper server.
+Obviously, all clients were forced to connect to the only available helper server.
 
 In the end we also tested the game on two laptops that were connected through a LAN. Although the game ran, some issues came up which were mainly related to updating the movement of the players. We think this is due to the great amount of messages that the main server needs to handle in a very short time period without any form of buffering.
 
