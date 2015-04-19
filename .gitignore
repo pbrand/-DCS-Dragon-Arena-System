@@ -23,6 +23,7 @@ local.properties
 Game/log/*.*
 
 
+
 # External tool builders
 .externalToolBuilders/
 
@@ -222,8 +223,7 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 report/main.pdf
-Game/log_metric.txt
-Game/log.txt
 Game/lib/log4j-api-2.2.jar
 Game/lib/log4j-core-2.2.jar
-report/main.tex
+
+report/main.pdf
