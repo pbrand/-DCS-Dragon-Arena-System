@@ -43,7 +43,7 @@ The backup server then updates the knowledge of its backup battlefield and other
 
 If the main server goes down, it is obvious that it is impossible for the helper server to perform any action on the main server.
 If the helpers detect such a problem, they immediately try to send the request to the backup server and ask the backup server to perform the requested actions on the battlefield.
-The helpers also notify the backup, the failure of the main server and tell the main server that he needs to take over the tasks. %%% I don't understand this sentence.
+The helpers also notify the backup about the failure of the main server.
 Whenever the backup server gets such a notification, it promotes itself to being the main server and takes all the responsibilities of a main server on itself.
 The backup may be a few steps behind, because the backup is not updated after each Unit action, as it is updated periodically. 
 Updating the backup after each Unit's action would cause too much overhead at the server. 
@@ -56,7 +56,9 @@ A solution would be to bring up a new backup server when the new main server is 
 In order to support a large number of players on the battlefield, it is important for the system to be scalable.
 As stated earlier, the helper servers perform the computations for the main server.
 It is possible to add as many helper servers as required which can be registered to the main server.
-Clients may then connect to any of these available helper servers in order to play the game. One of the downsides of doing this is that; the more clients that are connected, the more helper servers you will need which might eventually flood the main server with requests. Another possible downside is; if one decides to spawn less helper servers, for example in order to prevent the previously described problem, one could put too many clients on a helper server, hence stressing the helper servers too much, which might make them unresponsive.
+Clients may then connect to any of these available helper servers in order to play the game. 
+One of the downsides of doing this is that; the more clients that are connected, the more helper servers you will need which might eventually flood the main server with requests. 
+Another possible downside is; if one decides to spawn less helper servers, for example in order to prevent the previously described problem, one could put too many clients on a helper server, hence stressing the helper servers too much, which might make them unresponsive.
 
 The main server on the other hand, is not scalable for distributing workload like the helper servers do. 
 Instead, only a backup is created of the main server, which can be used if the main crashes.
